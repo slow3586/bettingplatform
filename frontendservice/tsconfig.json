@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "moduleResolution": "node",
+    "module": "ES2022",
+    "noImplicitAny": true,
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "jsx": "react",
+    "baseUrl": "./frontend/",
+    "paths": {
+      "ts/*": [
+        "./ts/*"
+      ],
+    }
+  },
+  "include": ["./frontend/**/*"],
+  "exclude": ["**/*.spec.ts"]
+}

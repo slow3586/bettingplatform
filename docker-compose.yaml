@@ -1,0 +1,67 @@
+name: betting_platform
+
+services:
+  app_user_service:
+    build: ./userservice
+    depends_on:
+      kafka_broker_0:
+        condition: service_healthy
+    ports:
+      - "8081:8080"
+    healthcheck:
+      test: "curl --fail --silent 127.0.0.1:8080/actuator/health | grep UP || exit 1"
+      interval: 2s
+      timeout: 2s
+      retries: 20
+
+  kafka_zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.4
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka_broker_0:
+    image: confluentinc/cp-kafka:7.4.4
+    depends_on:
+      - kafka_zookeeper
+    ports:
+      - "9090:9090"
+      - "9091:9091"
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT_INTER:PLAINTEXT,PLAINTEXT_HOST1:PLAINTEXT,PLAINTEXT_HOST2:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT_INTER://kafka:9090,PLAINTEXT_HOST1://kafka:9091,PLAINTEXT_HOST2://kafka:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTER
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: true
+    healthcheck:
+      test: nc -z 127.0.0.1 9091 || exit -1
+      interval: 2s
+      timeout: 2s
+      retries: 20
+
+  kafka_kafdrop:
+    image: obsidiandynamics/kafdrop
+    depends_on:
+      - kafka_broker_0
+    ports:
+      - "9000:9000"
+    environment:
+      KAFKA_BROKERCONNECT: "kafka:9090"
+
+  audit_prometheus:
+    image: prom/prometheus
+    ports:
+      - 19090:9090
+
+  audit_grafana:
+    image: grafana/grafana
+    depends_on:
+      - audit_prometheus
+    ports:
+      - 3000:3000

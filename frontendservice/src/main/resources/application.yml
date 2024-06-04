@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: "frontendservice"
+  devtools:
+    livereload:
+      enabled: true
+  web:
+    resources:
+      static-locations:
+        - 'file:src/main/resources/static/'
+        - 'classpath:/static/'
+  codec:
+    max-in-memory-size: 50MB
+  main:
+    allow-bean-definition-overriding: true
+    banner-mode: 'off'
+  output:
+    ansi:
+      enabled: ALWAYS

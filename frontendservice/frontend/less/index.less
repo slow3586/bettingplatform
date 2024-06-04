@@ -1,0 +1,105 @@
+@import "primereact/resources/themes/lara-light-cyan/theme.css";
+
+body {
+  margin: 1vh 1vw;
+}
+
+@color-bg-0: #f9f9fd;
+@color-bg-1: #f1f4f5;
+@color-bg-2: #cfd7dc;
+@color-bg-3: #c1ced9;
+@color-fg-0: #000000;
+@color-fg-1: #1a1b1b;
+@color-fg-2: #2e3131;
+
+@gap-small: 5px;
+@gap-big: 10px;
+
+.style-border {
+  border: 1px solid @color-bg-3;
+  border-radius: @gap-big;
+  padding: @gap-big;
+  margin: @gap-big;
+}
+
+.style-flex-line {
+  display: flex;
+  gap: @gap-big;
+}
+
+.style-block {
+  &:extend(.style-border);
+}
+
+.style-flex-column {
+  display: flex;
+  flex-direction: column;
+  gap: @gap-big;
+}
+
+.bp-app-container {
+  &:extend(.style-flex-line);
+  height: 90vh;
+  width: 80vw;
+  margin: 5vh 10vw;
+}
+
+.bp-app {
+  &:extend(.style-flex-column);
+  width: 100%;
+  height: 100%;
+}
+
+.bp-app-center {
+  &:extend(.style-flex-line);
+  height: 100%;
+  width: 100%;
+}
+
+.bp-app-top {
+  &:extend(.style-flex-line);
+  width: 100%;
+}
+
+.bp-center-events {
+  &:extend(.style-flex-column);
+  width: 100%;
+  height: 100%;
+}
+
+.bp-betting-chart {
+  &:extend(.style-flex-column);
+  &:extend(.style-border);
+  &:extend(.style-block);
+}
+
+.bp-betting-input-forms {
+  &:extend(.style-flex-column);
+  &:extend(.style-border);
+  width: 100%;
+}
+
+.bp-betting-input-forms-value {
+  &:extend(.style-flex-column);
+  &:extend(.style-border);
+}
+
+.bp-betting-input-forms-buttons {
+  &:extend(.style-flex-line);
+  &:extend(.style-border);
+  margin: 5px;
+  width: 100%;
+}
+
+.bp-betting-input-forms-buttons-button {
+  width: 50%;
+}
+
+.p-inputtext {
+  width: 100%;
+}
+
+.p-splitter {
+  width: 100%;
+  height: 100%;
+}

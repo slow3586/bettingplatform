@@ -1,13 +1,13 @@
 import React from "react";
-import {AppTop} from "ts/app/top/AppTop";
-import {AppCenter} from "ts/app/center/AppCenter";
+import {TopZone} from "ts/app/top/TopZone";
+import {CenterZone} from "ts/app/center/CenterZone";
 
 export function App() {
     return (
         <div className="bp-app-container">
             <div className="bp-app">
-                <AppTop/>
-                <AppCenter/>
+                <TopZone/>
+                <CenterZone/>
             </div>
         </div>
     )

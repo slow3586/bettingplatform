@@ -19,12 +19,11 @@ body {
   border: 1px solid @color-bg-3;
   border-radius: @gap-big;
   padding: @gap-big;
-  margin: @gap-big;
 }
 
 .style-flex-line {
   display: flex;
-  gap: @gap-big;
+  gap: @gap-small;
 }
 
 .style-block {
@@ -34,7 +33,8 @@ body {
 .style-flex-column {
   display: flex;
   flex-direction: column;
-  gap: @gap-big;
+  gap: @gap-small;
+  padding: @gap-small;
 }
 
 .bp-app-container {
@@ -50,7 +50,7 @@ body {
   height: 100%;
 }
 
-.bp-app-center {
+.bp-center {
   &:extend(.style-flex-line);
   height: 100%;
   width: 100%;
@@ -63,36 +63,87 @@ body {
 
 .bp-center-events {
   &:extend(.style-flex-column);
+  &:extend(.style-border);
+  height: 100%;
+}
+
+.bp-betting-chart-container {
+  &:extend(.style-flex-column);
+  &:extend(.style-border);
+  &:extend(.style-block);
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.bp-betting-chart {
+  width: 92%;
+  height: 92%;
+}
+
+.bp-player-input {
+  &:extend(.style-flex-column);
+  &:extend(.style-border);
+  width: 40%;
+}
+
+.bp-player-input-value {
+  &:extend(.style-flex-column);
+  &:extend(.style-border);
+  width: 100%;
+  padding: 0;
+}
+
+.bp-player-input-value-item {
+  &:extend(.style-border);
+}
+
+.bp-player-input-buttons {
+  &:extend(.style-flex-line);
+  &:extend(.style-border);
+  width: 100%;
+}
+
+.bp-player-input-buttons-button {
   width: 100%;
   height: 100%;
 }
 
-.bp-betting-chart {
-  &:extend(.style-flex-column);
-  &:extend(.style-border);
-  &:extend(.style-block);
-}
-
-.bp-betting-input-forms {
-  &:extend(.style-flex-column);
-  &:extend(.style-border);
-  width: 100%;
-}
-
-.bp-betting-input-forms-value {
-  &:extend(.style-flex-column);
-  &:extend(.style-border);
-}
-
-.bp-betting-input-forms-buttons {
+.bp-player-zone {
   &:extend(.style-flex-line);
   &:extend(.style-border);
-  margin: 5px;
   width: 100%;
 }
 
-.bp-betting-input-forms-buttons-button {
+.bp-player-state {
+  &:extend(.style-flex-line);
+  &:extend(.style-border);
   width: 50%;
+}
+
+.bp-player-state-overview {
+  &:extend(.style-border);
+  width: 35%;
+}
+
+.bp-player-state-history {
+  &:extend(.style-border);
+  width: 55%;
+  height: 100%;
+}
+
+.bp-player-state-history-item {
+  &:extend(.style-border);
+}
+
+.bp-events-history {
+  &:extend(.style-flex-column);
+  &:extend(.style-border);
+  height: 100%;
+}
+
+.bp-events-history-item {
+  &:extend(.style-border);
 }
 
 .p-inputtext {

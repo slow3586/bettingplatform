@@ -1,4 +1,4 @@
-package com.slow3586.bettingplaftorm.betservice;
+package com.slow3586.bettingplaftorm.betservice.bet;
 
 import lombok.Builder;
 import lombok.Data;

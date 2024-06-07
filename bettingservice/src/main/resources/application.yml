@@ -1,3 +1,10 @@
 spring:
   application:
-    name: "bettingservice"
+    name: 'bettingservice'
+
+app:
+  price:
+    request-path: 'https://api.binance.com/api/v3/uiKlines?symbol=BNBUSDT&interval=1s&limit=1'
+    request-date-format: 'yyyy-MM-dd\\THH:mm'
+    response-regex: '"entries":\\[\\[.*?,(.*?)\\]\\]'
+    request-instrument: 'BTC'

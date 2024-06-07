@@ -1,7 +1,7 @@
 name: betting_platform
 
 services:
-  app_user_service:
+  user_service:
     build: ./userservice
     depends_on:
       kafka_broker_0:
@@ -10,6 +10,35 @@ services:
       - "8081:8080"
     healthcheck:
       test: "curl --fail --silent 127.0.0.1:8080/actuator/health | grep UP || exit 1"
+      interval: 2s
+      timeout: 2s
+      retries: 20
+
+  websocket_service:
+    build: ./websocketservice
+    depends_on:
+      kafka_broker_0:
+        condition: service_healthy
+    ports:
+      - "8082:8080"
+    healthcheck:
+      test: "curl --fail --silent 127.0.0.1:8080/actuator/health | grep UP || exit 1"
+      interval: 2s
+      timeout: 2s
+      retries: 20
+
+  rabbitmq:
+    build:
+      dockerfile: ./rabbit.Dockerfile
+    ports:
+      - 5672:5672
+      - 15672:15672
+      - 61613:61613
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
       interval: 2s
       timeout: 2s
       retries: 20

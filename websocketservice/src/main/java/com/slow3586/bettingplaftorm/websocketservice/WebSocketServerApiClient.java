@@ -22,6 +22,8 @@ public class WebSocketServerApiClient {
     String mainAppUrl;
 
     public String getUser(String jwt) {
+        return "user";
+        /*
         return webClientBuilder
             .baseUrl(mainAppUrl)
             .build()
@@ -31,5 +33,7 @@ public class WebSocketServerApiClient {
             .retrieve()
             .bodyToMono(String.class)
             .block(Duration.ofSeconds(5));
+
+         */
     }
 }

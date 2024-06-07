@@ -1,7 +1,6 @@
 package com.slow3586.bettingplaftorm.betservice.price;
 
 import com.fasterxml.jackson.databind.ser.std.StringSerializer;
-import com.slow3586.bettingplaftorm.betservice.websocket.WebSocketService;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.DoubleSerializer;
@@ -26,29 +25,24 @@ public class PriceServiceConfiguration {
     public DefaultKafkaProducerFactory<String, Double> kafkaProducerFactoryDouble() {
         return new DefaultKafkaProducerFactory<>(
             Map.of(
-                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9091",
+                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka_broker_0:9091",
                 ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class,
                 ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, DoubleSerializer.class
             ));
     }
 
     @Bean
-    public DefaultKafkaProducerFactory<String, ValueChoice> kafkaProducerFactoryValueChoice() {
+    public DefaultKafkaProducerFactory<String, Double> kafkaProducerFactoryValueChoice() {
         return new DefaultKafkaProducerFactory<>(
             Map.of(
-                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9091",
+                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka_broker_0:9091",
                 ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class,
-                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, new JsonSerializer<ValueChoice>()
+                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, DoubleSerializer.class
             ));
     }
 
     @Bean
     public KafkaTemplate<String, Double> kafkaTemplateDouble() {
         return new KafkaTemplate<>(kafkaProducerFactoryDouble());
-    }
-
-    @Bean
-    public KafkaTemplate<String, Boolean> kafkaTemplateValueChoice() {
-        return new KafkaTemplate<>(kafkaProducerFactoryValueChoice());
     }
 }

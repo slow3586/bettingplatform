@@ -16,11 +16,8 @@ public class BetServiceRest {
     BetService betService;
 
     @PostMapping
-    public Mono<Void> make(
-        String username,
-        Boolean value
-    ) {
-        return betService.make(username, value);
+    public void make(UUID username, Boolean value) {
+        betService.make(username, value);
     }
 
     protected Mono<UUID> getCurrentUserId() {

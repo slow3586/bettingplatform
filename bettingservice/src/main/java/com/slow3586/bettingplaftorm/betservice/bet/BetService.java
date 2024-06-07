@@ -10,6 +10,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Spliterators;
 import java.util.UUID;
@@ -31,15 +32,15 @@ public class BetService {
         return betRepository.findAll();
     }
 
-    public Mono<Void> make(String username, Boolean value) {
-        return Mono.fromFuture(kafkaProducer.send("bets", username, value)).then();
+    public void make(UUID user, Boolean value) {
+        betRepository.save(
+            BetEntity.builder()
+                .owner(user)
+                .build());
     }
 
     @Async
     @Scheduled(cron = "* * * * *")
     public void scheduled() {
-        StreamSupport.stream(betRepository.findAll().spliterator(), false)
-            .map(e -> e.get)
-
     }
 }

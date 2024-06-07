@@ -22,7 +22,7 @@ public class BetServiceConfiguration {
     public DefaultKafkaProducerFactory<String, String> kafkaProducerFactory() {
         return new DefaultKafkaProducerFactory<>(
             Map.of(
-                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9091",
+                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka_broker_0:9091",
                 ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class,
                 ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class
             ));
@@ -31,15 +31,5 @@ public class BetServiceConfiguration {
     @Bean
     public KafkaTemplate<String, String> kafkaTemplate() {
         return new KafkaTemplate<>(kafkaProducerFactory());
-    }
-
-    @Bean
-    public KStream<String, Double> kStream(StreamsBuilder streamsBuilder) {
-        streamsBuilder.stream(
-            "game.finished",
-            Consumed.with(
-                Serdes.String(),
-                Serdes.String()))
-            .foreach(game -> );
     }
 }

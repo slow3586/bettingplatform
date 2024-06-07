@@ -1,4 +1,27 @@
 spring:
   application:
     name: 'websocketservice'
-
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: admin
+    password: admin
+app:
+  kafka:
+    broker: 'localhost:9091'
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      enabled: true
+  metrics:
+    distribution:
+      percentiles-histogram:
+        "[http.server.requests]": true
+  prometheus:
+    metrics:
+      export:
+        enabled: true

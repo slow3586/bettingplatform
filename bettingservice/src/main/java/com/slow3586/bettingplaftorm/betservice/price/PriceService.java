@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Slf4j
@@ -20,10 +21,10 @@ import java.util.regex.Pattern;
 public class PriceService {
     PriceServiceProperties priceServiceProperties;
     WebClient webClient;
-    KafkaTemplate<String, Double> kafkaProducer;
+    KafkaTemplate<String, String> kafkaProducer;
 
     @Async
-    @Scheduled(cron = "*/5 * * * * *")
+    @Scheduled(cron = "0/5 * * * * *")
     public void updatePrice() {
         final Pattern pricePattern = Pattern.compile(priceServiceProperties.getResponseRegex());
         webClient
@@ -31,11 +32,14 @@ public class PriceService {
             .uri(priceServiceProperties.getRequestPath())
             .retrieve()
             .bodyToMono(String.class)
-            .map(pricePattern::matcher)
-            .map(m -> m.matches() ? m.group() : null)
-            .switchIfEmpty(Mono.error(new RuntimeException("Not found")))
-            .map(Double::valueOf)
-            .map(price ->
+            .flatMap(priceString -> {
+                final Matcher matcher = pricePattern.matcher(priceString);
+                return matcher.matches()
+                    ? Mono.just(matcher.group(1))
+                    : Mono.error(new IllegalArgumentException("Price not found: " + priceString));
+            })
+            //.mapNotNull(Double::valueOf)
+            .mapNotNull(price ->
                 kafkaProducer.send(
                     "price.updated",
                     priceServiceProperties.getRequestInstrument(),

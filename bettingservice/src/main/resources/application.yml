@@ -1,19 +1,26 @@
 spring:
   application:
     name: 'bettingservice'
+  main:
+    web-application-type: servlet
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: 'jdbc:postgresql://localhost:5434/postgres'
+    username: postgres
+    password: postgres
 
 app:
   price:
     request-path: 'https://api.binance.com/api/v3/uiKlines?symbol=BNBUSDT&interval=1s&limit=1'
     request-date-format: 'yyyy-MM-dd\\THH:mm'
-    response-regex: '"entries":\\[\\[.*?,(.*?)\\]\\]'
+    response-regex: '\[\[.*?,.*?,.*?,\"(.*?)\",.*'
     request-instrument: 'BTC'
 
 management:
   endpoints:
     web:
       exposure:
-        include: "*"
+        include: health
   endpoint:
     health:
       enabled: true

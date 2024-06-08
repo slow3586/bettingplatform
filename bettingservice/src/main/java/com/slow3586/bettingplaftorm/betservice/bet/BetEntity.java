@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @Data
 @Builder
-@Table("bet")
+@Table("bets")
 public class BetEntity {
     @Id
     UUID id;

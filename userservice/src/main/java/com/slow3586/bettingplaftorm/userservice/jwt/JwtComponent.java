@@ -42,7 +42,7 @@ public class JwtComponent {
                 .parseSignedClaims(token)
                 .getPayload())
             .filter(claims -> claims.getExpiration().before(new Date()))
-            .filterWhen(claims -> userRepository.existsById(UUID.fromString(claims.getSubject())))
+            .filter(claims -> userRepository.existsById(UUID.fromString(claims.getSubject())))
             .map(Claims::getSubject);
     }
 }

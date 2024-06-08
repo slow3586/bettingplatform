@@ -5,8 +5,74 @@ services:
     depends_on:
       kafka_broker_0:
         condition: service_healthy
+      user_service_db:
+        condition: service_healthy
+    environment:
+      - spring.datasource.url=jdbc:postgresql://user_service_db:5432/postgres
     ports:
       - "8081:8080"
+      - "5006:5005"
+    healthcheck:
+      test: "curl --fail --silent 127.0.0.1:8080/actuator/health | grep UP || exit 1"
+      interval: 2s
+      timeout: 2s
+      retries: 20
+
+  user_service_db:
+    image: postgres:alpine
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./userservice/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+
+  betting_service:
+    build: ./bettingservice
+    depends_on:
+      kafka_broker_0:
+        condition: service_healthy
+      betting_service_db:
+        condition: service_healthy
+    ports:
+      - "8082:8080"
+      - "5007:5005"
+    environment:
+      - spring.datasource.url=jdbc:postgresql://betting_service_db:5432/postgres
+    healthcheck:
+      test: "curl --fail --silent 127.0.0.1:8080/actuator/health | grep UP || exit 1"
+      interval: 2s
+      timeout: 2s
+      retries: 20
+
+  betting_service_db:
+    image: postgres:alpine
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./bettingservice/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5435:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+
+  frontend_service:
+    build: ./frontendservice
+    ports:
+      - "8083:8080"
+      - "5008:5005"
     healthcheck:
       test: "curl --fail --silent 127.0.0.1:8080/actuator/health | grep UP || exit 1"
       interval: 2s
@@ -16,23 +82,27 @@ services:
   websocket_service:
     build: ./websocketservice
     depends_on:
+      user_service:
+        condition: service_healthy
       kafka_broker_0:
         condition: service_healthy
-      rabbitmq:
+      websocket_service_rabbitmq:
         condition: service_healthy
     ports:
-      - "8080:8080"
-      - "5005:5005"
+      - "8084:8080"
+      - "5009:5005"
     environment:
-      - spring.rabbitmq.host=rabbitmq
+      - spring.rabbitmq.host=websocket_service_rabbitmq
       - app.kafka.broker=kafka_broker_0:9091
+      - app.bet-service-url=betting_service:8080
+      - app.user-service-url=user_service:8080
     healthcheck:
       test: "curl --fail --silent 127.0.0.1:8080/actuator/health | grep UP || exit 1"
       interval: 2s
       timeout: 2s
       retries: 20
 
-  rabbitmq:
+  websocket_service_rabbitmq:
     build:
       dockerfile: ./rabbit.Dockerfile
     ports:
@@ -53,8 +123,8 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
-    expose:
-      - "2181"
+    ports:
+      - "2181:2181"
 
   kafka_broker_0:
     image: confluentinc/cp-kafka:7.4.4
@@ -90,11 +160,11 @@ services:
   audit_prometheus:
     image: prom/prometheus
     ports:
-      - 19090:9090
+      - "19090:9090"
 
   audit_grafana:
     image: grafana/grafana
     depends_on:
       - audit_prometheus
     ports:
-      - 3000:3000
+      - "3000:3000"

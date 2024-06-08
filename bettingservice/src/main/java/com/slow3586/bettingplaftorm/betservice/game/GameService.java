@@ -10,7 +10,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
@@ -34,13 +33,12 @@ public class GameService {
     }
 
     @Async
-    @Scheduled(cron = "* * * * *")
+    @Scheduled(cron = "* * * * * *")
     public void startGame() {
         final int seconds = 30 + random.nextInt(60);
         final GameEntity game = GameEntity.builder()
             .instrument("BTC")
             .dateStarted(LocalDateTime.now(ZoneId.of("UTC")))
-            .length(Duration.ofSeconds(seconds))
             .dateFinished(LocalDateTime.now(ZoneId.of("UTC")).plusSeconds(seconds))
             .build();
         gameRepository.save(game);
@@ -49,9 +47,9 @@ public class GameService {
 
 
     @Async
-    @Scheduled(cron = "* * * * *")
+    @Scheduled(cron = "* * * ? * *")
     public void finishGames() {
-        gameRepository.findAllByFinishedBeforeAndFinished(new Date(), false)
+        gameRepository.findReadyToBeFinished()
             .forEach(game -> {
                 game.setFinished(true);
                 gameRepository.save(game);

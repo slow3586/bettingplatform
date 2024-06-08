@@ -23,19 +23,19 @@ public class UserService {
     PasswordEncoder passwordEncoder;
 
     public Mono<String> login(LoginRequest loginRequest) {
-        return userRepository.findById(UUID.fromString(loginRequest.getLogin()))
+        return Mono.justOrEmpty(userRepository.findById(UUID.fromString(loginRequest.getLogin())))
             .single()
             .filter(userEntity -> userEntity.getPassword().equals(loginRequest.getPassword()))
             .flatMap(userEntity -> jwtComponent.generateToken(userEntity.getId()));
     }
 
     public Mono<String> register(RegisterRequest registerRequest) {
-        return userRepository.save(
+        return Mono.just(userRepository.save(
             UserEntity.builder()
                 .email(registerRequest.getEmail())
                 .password(passwordEncoder.encode(registerRequest.getPassword()))
                 .build()
-        ).flatMap(userEntity -> jwtComponent.generateToken(userEntity.getId()));
+        )).flatMap(userEntity -> jwtComponent.generateToken(userEntity.getId()));
     }
 
     public Mono<String> token(String token) {

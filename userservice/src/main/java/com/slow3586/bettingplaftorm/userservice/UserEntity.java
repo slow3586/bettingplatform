@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @Data
 @Builder
-@Table("user_login")
+@Table("users")
 public class UserEntity {
     @Id
     UUID id;

@@ -18,7 +18,7 @@ import java.time.Duration;
 public class UserApiClient {
     WebClient webClient;
     @NonFinal
-    @Value("${app.user-service-url:http://localhost:8080}")
+    @Value("${app.user-service-url}")
     String userServiceUrl;
 
     public String checkToken(String jwt) {

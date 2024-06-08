@@ -20,7 +20,7 @@ import java.util.UUID;
 public class BetServiceClient {
     WebClient webClient;
     @NonFinal
-    @Value("${app.bet-service-url:http://localhost:8080}")
+    @Value("${app.bet-service-url}")
     String betServiceUrl;
 
     public UUID make(BetMakeRequest betMakeRequest) {

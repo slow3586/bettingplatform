@@ -34,7 +34,14 @@ public class KafkaController {
     }
 
     @KafkaListener(topics = "game.started")
-    public void game(String value) {
+    public void gameStarted(String value) {
+        simpMessagingTemplate.convertAndSend(
+            "/topic/game",
+            value);
+    }
+
+    @KafkaListener(topics = "game.finished")
+    public void gameFinished(String value) {
         simpMessagingTemplate.convertAndSend(
             "/topic/game",
             value);

@@ -19,7 +19,7 @@ import java.util.UUID;
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public class BetService {
     BetRepository betRepository;
-    KafkaTemplate<String, Boolean> kafkaProducer;
+    KafkaTemplate<String, String> kafkaProducer;
 
     public List<BetEntity> get(
         final UUID game,
@@ -36,10 +36,5 @@ public class BetService {
                 .value(betMakeRequest.getValue())
                 .build()
         ).getId();
-    }
-
-    @Async
-    @Scheduled(cron = "* * * * *")
-    public void scheduled() {
     }
 }

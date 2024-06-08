@@ -1,4 +1,4 @@
-package com.slow3586.bettingplaftorm.websocketservice;
+package com.slow3586.bettingplaftorm.websocketservice.config;
 
 import jakarta.annotation.PostConstruct;
 import lombok.experimental.NonFinal;
@@ -6,9 +6,7 @@ import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.streams.StreamsConfig;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -40,7 +38,6 @@ import java.util.stream.Stream;
 
 @Configuration
 @EnableKafka
-@EnableKafkaStreams
 public class WebSocketConfig {
     @NonFinal
     @Value("${spring.rabbitmq.host:rabbitmq}")
@@ -55,20 +52,12 @@ public class WebSocketConfig {
     }
 
     @Bean
-    public MessageConverter messageConverter() {
-        return new Jackson2JsonMessageConverter();
-    }
-
-    @Bean
     public Map<String, Object> kafkaConfigMap() {
         return Map.of(
-            StreamsConfig.APPLICATION_ID_CONFIG, "websocket",
             ConsumerConfig.GROUP_ID_CONFIG, "websocket",
             ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBroker,
             ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
-            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
-            StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.StringSerde.class,
-            StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.StringSerde.class
+            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class
         );
     }
 

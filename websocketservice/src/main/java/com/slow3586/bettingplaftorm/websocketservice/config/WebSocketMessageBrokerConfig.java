@@ -1,18 +1,13 @@
-package com.slow3586.bettingplaftorm.websocketservice;
+package com.slow3586.bettingplaftorm.websocketservice.config;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
-import org.springframework.security.config.annotation.web.socket.EnableWebSocketSecurity;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
@@ -21,7 +16,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 @RequiredArgsConstructor
 @EnableWebSocketMessageBroker
-public class WebSocketBrokerConfig implements WebSocketMessageBrokerConfigurer {
+public class WebSocketMessageBrokerConfig implements WebSocketMessageBrokerConfigurer {
     WebSocketInterceptor webSocketInterceptor;
     @NonFinal
     @Value("${spring.rabbitmq.host}")
@@ -35,15 +30,15 @@ public class WebSocketBrokerConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config
-            .setUserDestinationPrefix("/user")
-            .enableStompBrokerRelay("/queue", "/topic")
+        config.enableStompBrokerRelay("/queue", "/topic")
             .setRelayHost(rabbitHost)
             .setRelayPort(61613)
             .setClientLogin(rabbitUsername)
             .setSystemLogin(rabbitUsername)
             .setSystemPasscode(rabbitPw)
             .setClientPasscode(rabbitPw);
+        config.setApplicationDestinationPrefixes("/app")
+            .setUserDestinationPrefix("/user");
     }
 
     @Override

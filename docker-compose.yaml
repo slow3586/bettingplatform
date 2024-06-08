@@ -15,7 +15,6 @@ services:
 
   websocket_service:
     build: ./websocketservice
-
     depends_on:
       kafka_broker_0:
         condition: service_healthy
@@ -24,10 +23,9 @@ services:
     ports:
       - "8080:8080"
       - "5005:5005"
-      - "80:80"
-      - "443:443"
     environment:
       - spring.rabbitmq.host=rabbitmq
+      - app.kafka.broker=kafka_broker_0:9091
     healthcheck:
       test: "curl --fail --silent 127.0.0.1:8080/actuator/health | grep UP || exit 1"
       interval: 2s

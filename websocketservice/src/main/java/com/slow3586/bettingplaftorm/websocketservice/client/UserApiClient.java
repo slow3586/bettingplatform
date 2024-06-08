@@ -1,4 +1,4 @@
-package com.slow3586.bettingplaftorm.websocketservice;
+package com.slow3586.bettingplaftorm.websocketservice.client;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -15,25 +15,21 @@ import java.time.Duration;
 @Service
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 @RequiredArgsConstructor
-public class WebSocketServerApiClient {
-    WebClient.Builder webClientBuilder;
+public class UserApiClient {
+    WebClient webClient;
     @NonFinal
-    @Value("${main-app-url:http://localhost:8080}")
-    String mainAppUrl;
+    @Value("${app.user-service-url:http://localhost:8080}")
+    String userServiceUrl;
 
-    public String getUser(String jwt) {
-        return "user";
-        /*
-        return webClientBuilder
-            .baseUrl(mainAppUrl)
-            .build()
+    public String checkToken(String jwt) {
+        return "08bdf387-83f1-4f68-906f-38bb7abed369";/*
+        return webClient
             .post()
-            .uri("/getUser")
+            .uri(userServiceUrl + "/token")
             .bodyValue(jwt)
             .retrieve()
             .bodyToMono(String.class)
             .block(Duration.ofSeconds(5));
-
-         */
+            */
     }
 }

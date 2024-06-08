@@ -8,8 +8,11 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <modules>
+        <module>api</module>
+        <module>bettingservice</module>
         <module>userservice</module>
         <module>frontendservice</module>
+        <module>websocketservice</module>
     </modules>
     <groupId>com.slow3586</groupId>
     <artifactId>bettingplatform</artifactId>

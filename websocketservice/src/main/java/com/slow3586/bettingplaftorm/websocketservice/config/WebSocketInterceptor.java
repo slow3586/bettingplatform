@@ -1,5 +1,6 @@
-package com.slow3586.bettingplaftorm.websocketservice;
+package com.slow3586.bettingplaftorm.websocketservice.config;
 
+import com.slow3586.bettingplaftorm.websocketservice.client.UserApiClient;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -9,15 +10,15 @@ import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
-@Service
+@Component
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 @RequiredArgsConstructor
 public class WebSocketInterceptor implements ChannelInterceptor {
-    WebSocketServerApiClient webSocketServerApiClient;
+    UserApiClient userApiClient;
 
     @Override
     public Message<?> preSend(
@@ -36,7 +37,7 @@ public class WebSocketInterceptor implements ChannelInterceptor {
                 .map(s -> s.get(0))
                 .filter(s -> s.contains("Bearer "))
                 .map(s -> s.substring("Bearer ".length()))
-                .map(webSocketServerApiClient::getUser)
+                .map(userApiClient::checkToken)
                 .orElseThrow(() -> new IllegalArgumentException("Could not authenticate user"));
             headerAccessor.setUser(() -> txt);
         }

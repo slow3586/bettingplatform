@@ -1,5 +1,6 @@
 package com.slow3586.bettingplaftorm.betservice.game;
 
+import com.slow3586.bettingplaftorm.api.GameEntityDto;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;

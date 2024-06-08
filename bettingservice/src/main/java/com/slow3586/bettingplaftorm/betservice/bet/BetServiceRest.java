@@ -1,32 +1,19 @@
 package com.slow3586.bettingplaftorm.betservice.bet;
 
+import com.slow3586.bettingplaftorm.api.BetMakeRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.ReactiveSecurityContextHolder;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RestController;
-import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
-@RestController(value = "bets")
+@RestController(value = "bet")
 @RequiredArgsConstructor
 public class BetServiceRest {
     BetService betService;
 
-    @PostMapping
-    public void make(UUID username, Boolean value) {
-        betService.make(username, value);
-    }
-
-    protected Mono<UUID> getCurrentUserId() {
-        return ReactiveSecurityContextHolder.getContext()
-            .map(SecurityContext::getAuthentication)
-            .map(Authentication::getPrincipal)
-            .cast(org.springframework.security.core.userdetails.User.class)
-            .map(org.springframework.security.core.userdetails.User::getUsername)
-            .map(UUID::fromString)
-            .switchIfEmpty(Mono.empty());
+    @PutMapping
+    public UUID make(BetMakeRequest betMakeRequest) {
+        return betService.make(betMakeRequest);
     }
 }

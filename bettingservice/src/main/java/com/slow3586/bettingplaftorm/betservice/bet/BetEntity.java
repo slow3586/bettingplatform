@@ -13,6 +13,7 @@ import java.util.UUID;
 public class BetEntity {
     @Id
     UUID id;
-    UUID owner;
-    int value;
+    UUID userId;
+    int typeId;
+    String value;
 }

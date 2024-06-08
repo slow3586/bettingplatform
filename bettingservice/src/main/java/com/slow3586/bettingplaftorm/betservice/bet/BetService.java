@@ -1,5 +1,6 @@
 package com.slow3586.bettingplaftorm.betservice.bet;
 
+import com.slow3586.bettingplaftorm.api.BetMakeRequest;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -8,14 +9,9 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Spliterators;
 import java.util.UUID;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 @Slf4j
 @Service
@@ -32,11 +28,14 @@ public class BetService {
         return betRepository.findAll();
     }
 
-    public void make(UUID user, Boolean value) {
-        betRepository.save(
+    public UUID make(BetMakeRequest betMakeRequest) {
+        return betRepository.save(
             BetEntity.builder()
-                .owner(user)
-                .build());
+                .userId(betMakeRequest.getUserId())
+                .typeId(betMakeRequest.getBetTypeId())
+                .value(betMakeRequest.getValue())
+                .build()
+        ).getId();
     }
 
     @Async

@@ -1,4 +1,4 @@
-package com.slow3586.bettingplaftorm.betservice.game;
+package com.slow3586.bettingplaftorm.api;
 
 import lombok.Builder;
 import lombok.Data;

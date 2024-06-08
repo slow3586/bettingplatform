@@ -19,7 +19,7 @@ public class KafkaController {
     SimpUserRegistry simpUserRegistry;
     BetServiceClient betServiceClient;
 
-    @KafkaListener(topics = "price.current")
+    @KafkaListener(topics = "price.update")
     public void price(String value) {
         simpMessagingTemplate.convertAndSend(
             "/topic/price",

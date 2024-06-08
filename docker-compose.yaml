@@ -1,14 +1,14 @@
 name: betting_platform
 services:
-  user_service:
+  user-service:
     build: ./userservice
     depends_on:
-      kafka_broker_0:
+      kafka-broker-0:
         condition: service_healthy
-      user_service_db:
+      user-service-db:
         condition: service_healthy
     environment:
-      - spring.datasource.url=jdbc:postgresql://user_service_db:5432/postgres
+      - spring.datasource.url=jdbc:postgresql://user-service-db:5432/postgres
     ports:
       - "8081:8080"
       - "5006:5005"
@@ -18,7 +18,7 @@ services:
       timeout: 2s
       retries: 20
 
-  user_service_db:
+  user-service-db:
     image: postgres:alpine
     environment:
       POSTGRES_DB: postgres
@@ -34,25 +34,25 @@ services:
       timeout: 5s
       retries: 3
 
-  betting_service:
+  betting-service:
     build: ./bettingservice
     depends_on:
-      kafka_broker_0:
+      kafka-broker-0:
         condition: service_healthy
-      betting_service_db:
+      betting-service-db:
         condition: service_healthy
     ports:
       - "8082:8080"
       - "5007:5005"
     environment:
-      - spring.datasource.url=jdbc:postgresql://betting_service_db:5432/postgres
+      - spring.datasource.url=jdbc:postgresql://betting-service-db:5432/postgres
     healthcheck:
       test: "curl --fail --silent 127.0.0.1:8080/actuator/health | grep UP || exit 1"
       interval: 2s
       timeout: 2s
       retries: 20
 
-  betting_service_db:
+  betting-service-db:
     image: postgres:alpine
     environment:
       POSTGRES_DB: postgres
@@ -68,7 +68,7 @@ services:
       timeout: 5s
       retries: 3
 
-  frontend_service:
+  frontend-service:
     build: ./frontendservice
     ports:
       - "8083:8080"
@@ -79,30 +79,30 @@ services:
       timeout: 2s
       retries: 20
 
-  websocket_service:
+  websocket-service:
     build: ./websocketservice
     depends_on:
-      user_service:
+      user-service:
         condition: service_healthy
-      kafka_broker_0:
+      kafka-broker-0:
         condition: service_healthy
-      websocket_service_rabbitmq:
+      websocket-service-rabbitmq:
         condition: service_healthy
     ports:
       - "8084:8080"
       - "5009:5005"
     environment:
-      - spring.rabbitmq.host=websocket_service_rabbitmq
-      - app.kafka.broker=kafka_broker_0:9091
-      - app.bet-service-url=betting_service:8080
-      - app.user-service-url=user_service:8080
+      - spring.rabbitmq.host=websocket-service-rabbitmq
+      - app.kafka.broker=kafka-broker-0:9091
+      - app.bet-service-url=http://betting-service:8080
+      - app.user-service-url=http://user-service:8080
     healthcheck:
       test: "curl --fail --silent 127.0.0.1:8080/actuator/health | grep UP || exit 1"
       interval: 2s
       timeout: 2s
       retries: 20
 
-  websocket_service_rabbitmq:
+  websocket-service-rabbitmq:
     build:
       dockerfile: ./rabbit.Dockerfile
     ports:
@@ -118,7 +118,7 @@ services:
       timeout: 2s
       retries: 20
 
-  kafka_zookeeper:
+  kafka-zookeeper:
     image: confluentinc/cp-zookeeper:7.4.4
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
@@ -126,18 +126,18 @@ services:
     ports:
       - "2181:2181"
 
-  kafka_broker_0:
+  kafka-broker-0:
     image: confluentinc/cp-kafka:7.4.4
     depends_on:
-      - kafka_zookeeper
+      - kafka-zookeeper
     ports:
       - "9090:9090"
       - "9091:9091"
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: kafka_zookeeper:2181
+      KAFKA_ZOOKEEPER_CONNECT: kafka-zookeeper:2181
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT_INTER:PLAINTEXT,PLAINTEXT_HOST1:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT_INTER://kafka_broker_0:9090,PLAINTEXT_HOST1://kafka_broker_0:9091
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT_INTER://kafka-broker-0:9090,PLAINTEXT_HOST1://kafka-broker-0:9091
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTER
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
@@ -148,23 +148,11 @@ services:
       timeout: 2s
       retries: 20
 
-  kafka_kafdrop:
+  kafka-kafdrop:
     image: obsidiandynamics/kafdrop
     depends_on:
-      - kafka_broker_0
+      - kafka-broker-0
     ports:
       - "9000:9000"
     environment:
-      KAFKA_BROKERCONNECT: "kafka_broker_0:9090"
-
-  audit_prometheus:
-    image: prom/prometheus
-    ports:
-      - "19090:9090"
-
-  audit_grafana:
-    image: grafana/grafana
-    depends_on:
-      - audit_prometheus
-    ports:
-      - "3000:3000"
+      KAFKA_BROKERCONNECT: "kafka-broker-0:9090"

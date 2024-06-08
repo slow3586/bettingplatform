@@ -17,7 +17,7 @@ public class KafkaConfiguration {
     public DefaultKafkaProducerFactory<String, String> kafkaProducerFactory() {
         return new DefaultKafkaProducerFactory<>(
             Map.of(
-                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka_broker_0:9091",
+                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka-broker-0:9091",
                 ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class,
                 ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class
             ));

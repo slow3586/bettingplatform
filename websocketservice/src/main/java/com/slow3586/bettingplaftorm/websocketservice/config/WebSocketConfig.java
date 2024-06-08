@@ -43,7 +43,7 @@ public class WebSocketConfig {
     @Value("${spring.rabbitmq.host:rabbitmq}")
     String rabbitHost;
     @NonFinal
-    @Value("${app.kafka.broker:kafka_broker_0:9091}")
+    @Value("${app.kafka.broker:kafka-broker-0:9091}")
     String kafkaBroker;
 
     @Bean
@@ -134,7 +134,7 @@ public class WebSocketConfig {
                 Stream.of(
                         "bet.created",
                         "game.started",
-                        "price.current"
+                        "price.update"
                     ).filter(topicName -> !listTopicsResult.contains(topicName))
                     .map(topicName -> new NewTopic(
                         topicName,

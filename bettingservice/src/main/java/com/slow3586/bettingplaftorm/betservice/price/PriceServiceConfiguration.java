@@ -24,7 +24,7 @@ public class PriceServiceConfiguration {
     public DefaultKafkaProducerFactory<String, Double> kafkaProducerFactoryDouble() {
         return new DefaultKafkaProducerFactory<>(
             Map.of(
-                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka_broker_0:9091",
+                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka-broker-0:9091",
                 ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class,
                 ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, DoubleSerializer.class
             ));

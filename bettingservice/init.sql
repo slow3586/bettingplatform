@@ -14,3 +14,11 @@ CREATE TABLE IF NOT EXISTS games
     date_finished timestamp                                  NOT NULL,
     is_finished   boolean                                    NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS prices
+(
+    id         uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+    instrument character varying(1000)                    NOT NULL,
+    time       timestamp                                  NOT NULL,
+    value      double precision                           NOT NULL
+);

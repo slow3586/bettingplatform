@@ -11,6 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,9 +25,10 @@ public class PriceService {
     PriceServiceProperties priceServiceProperties;
     WebClient webClient;
     KafkaTemplate<String, String> kafkaProducer;
+    PriceRepository priceRepository;
 
     @Async
-    @Scheduled(cron = "0/5 * * * * *")
+    @Scheduled(cron = "0/1 * * * * *")
     public void updatePrice() {
         final Pattern pricePattern = Pattern.compile(priceServiceProperties.getResponseRegex());
         webClient
@@ -39,12 +43,22 @@ public class PriceService {
                     : Mono.error(new IllegalArgumentException("Price not found: " + priceString));
             })
             //.mapNotNull(Double::valueOf)
-            .mapNotNull(price ->
-                kafkaProducer.send(
-                    "price.updated",
+            .mapNotNull(price -> {
+                priceRepository.save(PriceEntity.builder()
+                    .instrument(priceServiceProperties.getRequestInstrument())
+                    .time(LocalDateTime.now(ZoneId.of("UTC")))
+                    .value(Double.parseDouble(price))
+                    .build());
+                return kafkaProducer.send(
+                    "price.update",
                     priceServiceProperties.getRequestInstrument(),
-                    price))
+                    price);
+            })
             .flatMap(Mono::fromFuture)
             .subscribe();
+    }
+
+    public List<String> getLatest() {
+        return priceRepository.findLatest();
     }
 }

@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.UUID;
 
@@ -23,23 +24,26 @@ public class UserService {
     PasswordEncoder passwordEncoder;
 
     public Mono<String> login(LoginRequest loginRequest) {
-        return Mono.justOrEmpty(userRepository.findById(UUID.fromString(loginRequest.getLogin())))
-            .single()
+        return Mono.just(loginRequest)
+            .publishOn(Schedulers.boundedElastic())
+            .map(request -> userRepository.findById(UUID.fromString(request.getLogin())))
+            .flatMap(Mono::justOrEmpty)
             .filter(userEntity -> userEntity.getPassword().equals(loginRequest.getPassword()))
             .flatMap(userEntity -> jwtComponent.generateToken(userEntity.getId()));
     }
 
     public Mono<String> register(RegisterRequest registerRequest) {
-        return Mono.just(userRepository.save(
-            UserEntity.builder()
-                .email(registerRequest.getEmail())
-                .password(passwordEncoder.encode(registerRequest.getPassword()))
-                .build()
-        )).flatMap(userEntity -> jwtComponent.generateToken(userEntity.getId()));
+        return Mono.just(registerRequest)
+            .publishOn(Schedulers.boundedElastic())
+            .map(request -> userRepository.save(
+                UserEntity.builder()
+                    .email(request.getEmail())
+                    .password(passwordEncoder.encode(request.getPassword()))
+                    .build()
+            )).flatMap(userEntity -> jwtComponent.generateToken(userEntity.getId()));
     }
 
     public Mono<String> token(String token) {
-        return Mono.just(token)
-            .flatMap(jwtComponent::getTokenUser);
+        return Mono.just(token).flatMap(jwtComponent::getTokenUser);
     }
 }

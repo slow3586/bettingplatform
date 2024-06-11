@@ -11,6 +11,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.Date;
 import java.util.UUID;
@@ -42,6 +43,7 @@ public class JwtComponent {
                 .parseSignedClaims(token)
                 .getPayload())
             .filter(claims -> claims.getExpiration().before(new Date()))
+            .publishOn(Schedulers.boundedElastic())
             .filter(claims -> userRepository.existsById(UUID.fromString(claims.getSubject())))
             .map(Claims::getSubject);
     }

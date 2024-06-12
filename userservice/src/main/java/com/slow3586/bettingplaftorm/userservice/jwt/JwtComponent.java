@@ -1,6 +1,5 @@
 package com.slow3586.bettingplaftorm.userservice.jwt;
 
-import com.slow3586.bettingplaftorm.userservice.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -22,7 +21,6 @@ import java.util.UUID;
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public class JwtComponent {
     JwtProperties jwtProperties;
-    UserRepository userRepository;
 
     public Mono<String> generateToken(UUID id) {
         return Mono.just(
@@ -34,7 +32,7 @@ public class JwtComponent {
                 .compact());
     }
 
-    public Mono<String> getTokenUser(String token) {
+    public Mono<String> getTokenSubject(String token) {
         return Mono.just(token)
             .map(t -> Jwts.parser()
                 .verifyWith(Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtProperties.getToken())))
@@ -44,7 +42,6 @@ public class JwtComponent {
                 .getPayload())
             .filter(claims -> claims.getExpiration().before(new Date()))
             .publishOn(Schedulers.boundedElastic())
-            .filter(claims -> userRepository.existsById(UUID.fromString(claims.getSubject())))
             .map(Claims::getSubject);
     }
 }

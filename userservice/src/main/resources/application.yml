@@ -1,6 +1,6 @@
 spring:
   application:
-    name: "userservice"
+    name: "user-service"
   main:
     web-application-type: reactive
   datasource:

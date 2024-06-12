@@ -30,26 +30,23 @@ public class WebSocketMessageBrokerConfig implements WebSocketMessageBrokerConfi
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableStompBrokerRelay("/queue", "/topic")
+        config.setApplicationDestinationPrefixes("/app")
+            .setUserDestinationPrefix("/user")
+            .enableStompBrokerRelay("/queue", "/topic")
             .setRelayHost(rabbitHost)
             .setRelayPort(61613)
             .setClientLogin(rabbitUsername)
             .setSystemLogin(rabbitUsername)
             .setSystemPasscode(rabbitPw)
             .setClientPasscode(rabbitPw);
-        config.setApplicationDestinationPrefixes("/app")
-            .setUserDestinationPrefix("/user");
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-            .setAllowedOriginPatterns("*");
-        registry.addEndpoint("/ws_sock")
             .setAllowedOriginPatterns("*")
             .withSockJS();
     }
-
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {

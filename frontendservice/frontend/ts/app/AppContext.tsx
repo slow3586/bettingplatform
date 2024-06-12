@@ -1,7 +1,4 @@
 import React, {Dispatch, SetStateAction, useState} from "react";
-import {TopZone} from "ts/app/top/TopZone";
-import {CenterZone} from "ts/app/center/CenterZone";
-import {useQueryClient} from "react-query";
 
 export const AppContext: React.Context<AppContextType>
     = React.createContext(null);

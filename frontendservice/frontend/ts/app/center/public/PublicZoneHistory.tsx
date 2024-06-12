@@ -1,5 +1,4 @@
 import React, {useState} from "react";
-import {DataView} from "primereact/dataview";
 
 export function PublicZoneHistory() {
     const [history, setHistory] = useState([

@@ -1,16 +1,19 @@
 spring:
   application:
-    name: 'websocketservice'
+    name: 'websocket-service'
   rabbitmq:
     host: localhost
     port: 5672
     username: admin
     password: admin
+
 app:
-  bet-service-url: 'localhost:8082'
-  user-service-url: 'localhost:8083'
-  kafka:
-    broker: 'localhost:9091'
+  websocket:
+    kafka-broker: 'localhost:9091'
+  client:
+    bet: 'localhost:8082'
+    user: 'localhost:8083'
+
 management:
   endpoints:
     web:

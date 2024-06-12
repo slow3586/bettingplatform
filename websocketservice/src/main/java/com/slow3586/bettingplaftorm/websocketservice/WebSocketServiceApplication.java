@@ -2,7 +2,10 @@ package com.slow3586.bettingplaftorm.websocketservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -12,10 +15,13 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 @EnableWebSecurity
 @EnableMethodSecurity
 @EnableScheduling
+@EnableFeignClients(basePackages = "com.slow3586.bettingplaftorm.api")
+@EnableConfigurationProperties
+@ConfigurationPropertiesScan
 public class WebSocketServiceApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(WebSocketServiceApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(WebSocketServiceApplication.class, args);
+    }
 
 }

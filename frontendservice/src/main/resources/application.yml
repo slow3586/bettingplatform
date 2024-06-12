@@ -1,6 +1,6 @@
 spring:
   application:
-    name: "frontendservice"
+    name: "frontend-service"
   devtools:
     livereload:
       enabled: true

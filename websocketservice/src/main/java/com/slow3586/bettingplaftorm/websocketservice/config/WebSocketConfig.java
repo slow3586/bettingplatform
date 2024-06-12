@@ -1,10 +1,9 @@
 package com.slow3586.bettingplaftorm.websocketservice.config;
 
-import jakarta.annotation.PostConstruct;
-import lombok.experimental.NonFinal;
-import org.apache.kafka.clients.admin.Admin;
-import org.apache.kafka.clients.admin.AdminClientConfig;
-import org.apache.kafka.clients.admin.NewTopic;
+import com.slow3586.bettingplaftorm.api.BetDto;
+import com.slow3586.bettingplaftorm.api.ChatPostDto;
+import com.slow3586.bettingplaftorm.api.PriceDto;
+import com.slow3586.bettingplaftorm.api.PriceGameDto;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
@@ -12,59 +11,30 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
-import org.springframework.kafka.annotation.EnableKafkaStreams;
-import org.springframework.kafka.annotation.KafkaStreamsDefaultConfiguration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
-import org.springframework.kafka.config.KafkaListenerContainerFactory;
-import org.springframework.kafka.config.KafkaStreamsConfiguration;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
-import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
+import org.springframework.kafka.support.serializer.DelegatingByTopicDeserializer;
+import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.reactive.function.client.WebClient;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Stream;
+import java.util.regex.Pattern;
 
 @Configuration
 @EnableKafka
 public class WebSocketConfig {
-    @NonFinal
-    @Value("${spring.rabbitmq.host:rabbitmq}")
-    String rabbitHost;
-    @NonFinal
-    @Value("${app.kafka.broker:kafka-broker-0:9091}")
-    String kafkaBroker;
-
-    @Bean
-    public WebClient defaultWebClient(WebClient.Builder webClientBuilder) {
-        return webClientBuilder.build();
-    }
-
-    @Bean
-    public Map<String, Object> kafkaConfigMap() {
-        return Map.of(
-            ConsumerConfig.GROUP_ID_CONFIG, "websocket",
-            ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBroker,
-            ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
-            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class
-        );
-    }
-
-    @Bean(name = KafkaStreamsDefaultConfiguration.DEFAULT_STREAMS_CONFIG_BEAN_NAME)
-    public KafkaStreamsConfiguration kStreamsConfig() {
-        return new KafkaStreamsConfiguration(kafkaConfigMap());
-    }
+    private static final String GROUP_ID = "websocket";
+    WebSocketProperties webSocketProperties;
 
     @Bean
     public RabbitTemplate rabbitTemplate(final ConnectionFactory connectionFactory, final MessageConverter messageConverter) {
@@ -76,12 +46,7 @@ public class WebSocketConfig {
     }
 
     @Bean
-    public ConsumerFactory<Integer, String> consumerFactory() {
-        return new DefaultKafkaConsumerFactory<>(kafkaConfigMap());
-    }
-
-    @Bean
-    public MessageConverter converter(){
+    public MessageConverter converter() {
         return new Jackson2JsonMessageConverter();
     }
 
@@ -103,46 +68,37 @@ public class WebSocketConfig {
     }
 
     @Bean
-    public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<Integer, String>>
-    kafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<Integer, String> factory =
-            new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(consumerFactory());
-        factory.setConcurrency(3);
-        factory.getContainerProperties().setPollTimeout(3000);
-        return factory;
-    }
-
-    @Bean
-    public ConnectionFactory connectionFactory() {
+    public ConnectionFactory rabbitConnectionFactory() {
         CachingConnectionFactory connectionFactory = new CachingConnectionFactory();
-        connectionFactory.setHost(rabbitHost);
+        connectionFactory.setHost(webSocketProperties.getRabbitHost());
         connectionFactory.setUsername("admin");
         connectionFactory.setPassword("admin");
         connectionFactory.setPort(5672);
         return connectionFactory;
     }
 
-    @PostConstruct
-    public void createTopics() {
-        try (final Admin admin = Admin.create(Map.of(
-            AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBroker
-        ))) {
-            final Set<String> listTopicsResult = admin.listTopics().names().get();
+    @Bean
+    public ConsumerFactory<String, Object> consumerFactory() {
+        Map<String, Object> props = new HashMap<>();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, webSocketProperties.getKafkaBroker());
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, GROUP_ID);
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
+            new DelegatingByTopicDeserializer(Map.of(
+                Pattern.compile("bet"), new JsonDeserializer<>(BetDto.class),
+                Pattern.compile("price"), new JsonDeserializer<>(PriceDto.class),
+                Pattern.compile("price_game"), new JsonDeserializer<>(PriceGameDto.class),
+                Pattern.compile("chat_post"), new JsonDeserializer<>(ChatPostDto.class)
+            ), new StringDeserializer()));
+        return new DefaultKafkaConsumerFactory<>(props);
+    }
 
-            admin.createTopics(
-                Stream.of(
-                        "bet.created",
-                        "game.started",
-                        "price.update"
-                    ).filter(topicName -> !listTopicsResult.contains(topicName))
-                    .map(topicName -> new NewTopic(
-                        topicName,
-                        1,
-                        (short) 1))
-                    .toList());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, Object> factory =
+            new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConcurrency(4);
+        factory.setConsumerFactory(consumerFactory());
+        return factory;
     }
 }

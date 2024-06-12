@@ -1,7 +1,8 @@
 package com.slow3586.bettingplaftorm.websocketservice.config;
 
-import com.slow3586.bettingplaftorm.websocketservice.client.UserApiClient;
+import com.slow3586.bettingplaftorm.api.UserServiceClient;
 import lombok.AccessLevel;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.messaging.Message;
@@ -18,12 +19,12 @@ import java.util.Optional;
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 @RequiredArgsConstructor
 public class WebSocketInterceptor implements ChannelInterceptor {
-    UserApiClient userApiClient;
+    UserServiceClient userServiceClient;
 
     @Override
     public Message<?> preSend(
-        final Message<?> message,
-        final MessageChannel channel
+        @NonNull final Message<?> message,
+        @NonNull final MessageChannel channel
     ) {
         final StompHeaderAccessor headerAccessor =
             MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
@@ -31,15 +32,16 @@ public class WebSocketInterceptor implements ChannelInterceptor {
         if (headerAccessor != null
             && StompCommand.CONNECT.equals(headerAccessor.getCommand())
         ) {
-            final String txt = Optional.ofNullable(
+            final String userId = Optional.ofNullable(
                     headerAccessor.getNativeHeader("Authorization")
                 ).filter(l -> !l.isEmpty())
                 .map(s -> s.get(0))
                 .filter(s -> s.contains("Bearer "))
                 .map(s -> s.substring("Bearer ".length()))
-                .map(userApiClient::checkToken)
+                .map(userServiceClient::token)
+                .map(Object::toString)
                 .orElseThrow(() -> new IllegalArgumentException("Could not authenticate user"));
-            headerAccessor.setUser(() -> txt);
+            headerAccessor.setUser(() -> userId);
         }
 
         return message;

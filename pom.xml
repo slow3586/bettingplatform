@@ -9,7 +9,7 @@
     </parent>
     <modules>
         <module>api</module>
-        <module>bettingservice</module>
+        <module>mainservice</module>
         <module>userservice</module>
         <module>frontendservice</module>
         <module>websocketservice</module>

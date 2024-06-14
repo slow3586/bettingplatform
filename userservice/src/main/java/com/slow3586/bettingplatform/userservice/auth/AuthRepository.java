@@ -7,4 +7,5 @@ import java.util.UUID;
 
 @Repository
 public interface AuthRepository extends CrudRepository<AuthEntity, UUID> {
+    AuthEntity findByLogin(String login);
 }

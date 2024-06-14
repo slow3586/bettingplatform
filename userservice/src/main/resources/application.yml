@@ -8,7 +8,10 @@ spring:
     url: 'jdbc:postgresql://localhost:5434/postgres'
     username: postgres
     password: postgres
-
+app:
+  auth:
+    token: 1236235613479587132984569812379867192387698172896739814643673471734
+    expiration-minutes: 600
 management:
   endpoints:
     web:

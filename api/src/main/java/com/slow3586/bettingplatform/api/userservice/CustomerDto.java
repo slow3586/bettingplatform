@@ -15,5 +15,5 @@ public class CustomerDto {
     UUID id;
     String name;
     String email;
-    double money;
+    double balance;
 }

@@ -9,6 +9,6 @@ import java.util.UUID;
 
 @Repository
 public interface PriceRepository extends CrudRepository<PriceEntity, UUID> {
-    @Query("SELECT * from price WHERE time < CURRENT_TIMESTAMP - interval '1 minute'")
+    @Query("SELECT * from price WHERE time > CURRENT_TIMESTAMP - interval '1 minute'")
     List<PriceEntity> findLatest();
 }

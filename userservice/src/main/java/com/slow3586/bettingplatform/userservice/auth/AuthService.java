@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
-import java.math.BigInteger;
 import java.util.Date;
 import java.util.UUID;
 
@@ -34,16 +33,18 @@ public class AuthService {
     public Mono<String> login(LoginRequest loginRequest) {
         return Mono.just(loginRequest)
             .publishOn(Schedulers.boundedElastic())
-            .map(request -> authRepository.findById(UUID.fromString(request.getLogin())))
-            .flatMap(Mono::justOrEmpty)
-            .filter(authEntity -> authEntity.getPassword().equals(loginRequest.getPassword()))
-            .flatMap(authEntity -> this.generateToken(authEntity.getId()));
+            .mapNotNull(request -> authRepository.findByLogin(request.getLogin()))
+            .filter(authEntity -> passwordEncoder.matches(
+                loginRequest.getPassword(),
+                authEntity.getPassword()))
+            .flatMap(authEntity -> this.generateToken(authEntity.getId()))
+            .switchIfEmpty(Mono.error(new IllegalArgumentException("Incorrect username or password")));
     }
 
     public Mono<UUID> register(RegisterRequest registerRequest) {
         return Mono.just(registerRequest)
             .publishOn(Schedulers.boundedElastic())
-            .map(request -> {
+            .handle((request, sink) -> {
                 final UUID id = authRepository.save(
                     AuthEntity.builder()
                         .login(request.getEmail())
@@ -56,12 +57,15 @@ public class AuthService {
                             .id(id)
                             .email(registerRequest.getEmail())
                             .name("name")
-                            .money(BigInteger.ZERO)
+                            .balance(0)
+                            .isNew(true)
                             .build());
                 } catch (Exception e) {
                     authRepository.deleteById(id);
+                    sink.error(e);
+                    return;
                 }
-                return id;
+                sink.next(id);
             });
     }
 

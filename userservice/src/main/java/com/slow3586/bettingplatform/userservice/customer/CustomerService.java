@@ -7,8 +7,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -19,18 +19,18 @@ public class CustomerService {
     CustomerRepository customerRepository;
     CustomerMapper customerMapper;
 
-    public List<CustomerDto> getByCurrentUser() {
+    public Mono<CustomerDto> getByCurrentUser() {
         return this.getPrivateByUser(SecurityUtils.getPrincipalId());
     }
 
-    public List<CustomerDto> getPrivateByUser(UUID uuid) {
-        return customerRepository.findById(uuid)
-            .stream()
-            .map(customerMapper::toDto)
-            .toList();
+    public Mono<CustomerDto> getPrivateByUser(UUID uuid) {
+        return Mono.just(uuid)
+            .mapNotNull(customerRepository::findById)
+            .flatMap(Mono::justOrEmpty)
+            .map(customerMapper::toDto);
     }
 
-    public List<CustomerDto> getPublicByUser(UUID uuid) {
-        return null;
+    public Mono<CustomerDto> getPublicByUser(UUID uuid) {
+        return this.getPrivateByUser(SecurityUtils.getPrincipalId());
     }
 }

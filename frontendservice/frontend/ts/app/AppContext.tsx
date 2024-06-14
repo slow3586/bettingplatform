@@ -1,18 +1,17 @@
-import React, {Dispatch, SetStateAction, useState} from "react";
+import React from "react";
+import {useCookies} from "react-cookie";
 
 export const AppContext: React.Context<AppContextType>
     = React.createContext(null);
 
 export type AppContextType = {
-    jwt: string,
-    setJwt: Dispatch<SetStateAction<string>>
+    jwt: any
 }
 
 export const AppContextProvider = ({children}: any) => {
-    const [jwt, setJwt] = useState(null);
-
+    const jwt = useCookies(['Authorization'])?.[0];
     return (
-        <AppContext.Provider value={{jwt, setJwt}}>
+        <AppContext.Provider value={{jwt}}>
             {children}
         </AppContext.Provider>
     );

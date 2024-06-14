@@ -2,7 +2,7 @@ import React from "react";
 import {Splitter, SplitterPanel} from "primereact/splitter";
 import {PublicZone} from "ts/app/center/public/PublicZone";
 import {GameZone} from "ts/app/center/game/GameZone";
-import {PlayerZone} from "ts/app/center/bet/PlayerZone";
+import {PlayerZone} from "ts/app/center/player/PlayerZone";
 
 export function CenterZone() {
     return (

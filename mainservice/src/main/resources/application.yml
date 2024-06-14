@@ -15,6 +15,8 @@ app:
     request-date-format: 'yyyy-MM-dd\\THH:mm'
     response-regex: '\[\[.*?,.*?,.*?,\"(.*?)\",.*'
     request-instrument: 'BTC'
+  main-service:
+    kafka-broker: 'localhost:9091'
 
 management:
   endpoints:

@@ -1,16 +1,21 @@
 import React, {useState} from "react";
 import 'chartjs-adapter-date-fns';
 import {Chart} from "primereact/chart";
-import {useStompClient, useSubscription} from "react-stomp-hooks";
+import {useSubscription} from "react-stomp-hooks";
 import {format} from "date-fns";
+import {useQuery} from "react-query";
+import axios from "axios";
 
 export function GameZone() {
     const [chartData, setChartData] = useState([]);
-    const stompClient = useStompClient();
 
-    if (chartData.length == 0 && stompClient != null) {
-        stompClient.publish({destination: "/app/price_latest", body: ""});
-    }
+    const priceQuery = useQuery(
+        'price',
+        async () => await axios.get('/price'),
+        {
+            enabled: false
+        });
+    const price = priceQuery?.data?.data;
 
     useSubscription("/user/topic/feed",
         (message) => {
@@ -35,7 +40,7 @@ export function GameZone() {
                 type="line"
                 data={{
                     datasets: [{
-                        data: chartData
+                        data: [...price, chartData]
                     }],
                 }}
                 options={{

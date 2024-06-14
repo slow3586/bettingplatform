@@ -10,8 +10,9 @@ spring:
 app:
   websocket:
     kafka-broker: 'localhost:9091'
+    rabbit-host: 'localhost:61613'
   client:
-    bet: 'localhost:8082'
+    main: 'localhost:8082'
     user: 'localhost:8083'
 
 management:

@@ -40,11 +40,19 @@ CREATE TABLE chat_post
     status     varchar(1000)                              NOT NULL
 );
 
-CREATE TABLE metric
+CREATE TABLE trace
 (
-    id    uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-    time  timestamp                                  NOT NULL,
-    name  varchar(1000),
-    key   varchar(1000),
-    value varchar(1000)
+    id                uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+    time              timestamp                                  NOT NULL,
+    service_name      varchar(1000),
+    span_id           varchar(1000),
+    trace_id          varchar(1000),
+    event_id          varchar(1000),
+    method_class      varchar(1000),
+    method_name       varchar(1000),
+    method_args       varchar(1000),
+    method_result     varchar(1000),
+    exception_class   varchar(1000),
+    exception_message varchar(1000),
+    exception_stack   varchar(8000)
 );

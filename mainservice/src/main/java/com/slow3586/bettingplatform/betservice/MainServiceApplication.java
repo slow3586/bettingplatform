@@ -19,6 +19,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @ConfigurationPropertiesScan
 @EnableConfigurationProperties
 @EnableKafka
+@EnableAspectJAutoProxy
 @EnableFeignClients(basePackages = "com.slow3586.bettingplatform.api.userservice")
 @SecurityScheme(
     name = "BearerAuth",

@@ -18,6 +18,7 @@ public class TraceDto {
     String serviceName;
     String spanId;
     String traceId;
+    String eventId;
     String methodClass;
     String methodName;
     String methodArgs;

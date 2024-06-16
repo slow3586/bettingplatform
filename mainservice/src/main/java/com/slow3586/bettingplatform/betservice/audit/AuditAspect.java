@@ -7,16 +7,16 @@ import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.apache.commons.lang.StringUtils;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.kafka.core.KafkaTemplate;
 
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -26,14 +26,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public class AuditAspect {
+    static String TOPIC = "trace";
     static String SERVICE_NAME = "main";
-    static String TOPIC_NAME = "trace";
-    @Lazy
-    KafkaTemplate<String, Object> kafkaTemplate;
+    AuditAsyncService auditAsyncService;
     @Lazy
     Tracer tracer;
 
-    @Pointcut("within(com.slow3586.bettingplatform..*)")
+    @Pointcut("within(com.slow3586.bettingplatform..*) " +
+        "&& !within(com.slow3586.bettingplatform.betservice.audit..*)")
     public void anyThisApp() {
     }
 
@@ -41,12 +41,11 @@ public class AuditAspect {
     public void anyPublic() {
     }
 
-    @Pointcut("!within(is(EnumType))" +
-        "&& !within(is(FinalType))")
+    @Pointcut("!within(is(EnumType)) && !within(is(FinalType))")
     public void notFinal() {
     }
 
-    @Pointcut("@within(org.springframework.stereotype.Service)")
+    @Pointcut("!@within(com.slow3586.bettingplatform.betservice.audit.AuditDisabled) && @within(org.springframework.stereotype.Service)")
     public void anyComponent() {
     }
 
@@ -54,57 +53,49 @@ public class AuditAspect {
     public void fullTracing() {
     }
 
-    @Around("fullTracing()")
-    public Object joinPoint(@NonNull ProceedingJoinPoint joinPoint) throws Throwable {
-        final TraceDto.TraceInfoBuilder traceInfo = getTraceInfo(joinPoint);
+    @Around("within(com.slow3586.bettingplatform..*) " +
+        "&& !within(com.slow3586.bettingplatform.betservice.audit..*))" +
+        "&& !within(is(EnumType)) && !within(is(FinalType))" +
+        "&& !within(com.slow3586.bettingplatform.betservice.audit..*))" +
+        "&& !@within(com.slow3586.bettingplatform.betservice.audit.AuditDisabled)" +
+        "&& @within(org.springframework.stereotype.Service)" +
+        "&& @within(org.springframework.stereotype.Repository)" +
+        "&& execution(public * *(..))")
+    public Object joinPoint(@NonNull ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
+        final TraceDto.TraceDtoBuilder traceInfo = getTrace(proceedingJoinPoint);
 
-        final Object result;
-        kafkaTemplate.send(
-            "trace.in",
-            traceInfo
-                .time(Instant.now())
-                .build());
+        auditAsyncService.send(traceInfo.eventId("enter"));
 
-        try {
-            result = joinPoint.proceed();
-        } catch (Throwable exception) {
-            kafkaTemplate.send(
-                "trace.err",
-                traceInfo
-                    .time(Instant.now())
-                    .exceptionClass(exception.getClass().getSimpleName())
-                    .exceptionMessage(exception.getMessage())
-                    .exceptionStack(Arrays.stream(exception.getStackTrace())
-                        .map(StackTraceElement::toString)
-                        .collect(Collectors.joining(", ")))
-                    .build());
-            throw exception;
-        }
+        final Object result = proceedingJoinPoint.proceed();
 
-        kafkaTemplate.send(
-            "trace.out",
-            traceInfo
-                .time(Instant.now())
-                .methodResult(Objects.toString(result))
-                .build());
+        auditAsyncService.send(traceInfo.eventId("exit").methodResult(Objects.toString(result)));
+
         return result;
     }
 
-    //@AfterThrowing(pointcut = "!fullTracing() && notFinal()", throwing = "exception")
+    @AfterThrowing(pointcut = "!within(com.slow3586.bettingplatform.betservice.audit..*))" +
+        "&& !within(is(EnumType)) && !within(is(FinalType))" +
+        "&& !within(com.slow3586.bettingplatform.betservice.audit..*))" +
+        "&& !@within(com.slow3586.bettingplatform.betservice.audit.AuditDisabled)" +
+        "&& execution(public * *(..))",
+        throwing = "exception")
     public void afterThrowing(JoinPoint joinPoint, Throwable exception) throws Throwable {
-        final TraceDto.TraceInfoBuilder traceInfo = getTraceInfo(joinPoint);
+        final TraceDto.TraceDtoBuilder traceInfo = getTrace(joinPoint);
 
-        kafkaTemplate.send(
-            "trace.err",
-            traceInfo
-                .time(Instant.now())
-                .exceptionClass(exception.getClass().getSimpleName())
-                .exceptionMessage(exception.getMessage())
-                .build());
+        auditAsyncService.send(traceInfo
+            .eventId("error")
+            .exceptionClass(exception.getClass().getSimpleName())
+            .exceptionMessage(exception.getMessage())
+            .exceptionStack(
+                StringUtils.substring(
+                    Arrays.stream(exception.getStackTrace())
+                        .map(StackTraceElement::toString)
+                        .collect(Collectors.joining(", ")),
+                    0, 8000)));
         throw exception;
     }
 
-    protected TraceDto.TraceInfoBuilder getTraceInfo(JoinPoint joinPoint) {
+    protected TraceDto.TraceDtoBuilder getTrace(JoinPoint joinPoint) {
         final TraceContext context = tracer == null ? null : tracer.currentTraceContext().context();
         final String spanId = context == null ? null : context.spanId();
         final String traceId = context == null ? null : context.traceId();
@@ -121,4 +112,5 @@ public class AuditAspect {
             .methodName(methodName)
             .methodArgs(methodArgs);
     }
+
 }

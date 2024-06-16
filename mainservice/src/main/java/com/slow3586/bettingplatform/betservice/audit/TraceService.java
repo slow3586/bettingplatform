@@ -23,13 +23,12 @@ import org.springframework.kafka.support.serializer.JsonSerde;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 @EnableKafkaStreams
 @Configuration
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
+@AuditDisabled
 public class TraceService {
     static KeyValueMapper<String, String, String> BY_VALUE = (k, v) -> v;
     static TimeWindows ONE_SECOND = TimeWindows.ofSizeWithNoGrace(Duration.ofSeconds(1));
@@ -52,25 +51,18 @@ public class TraceService {
 
     @Bean
     public KStream<String, TraceDto> aweyhaw(StreamsBuilder streamsBuilder) {
-        JsonSerde<TraceDto> valueSerde = new JsonSerde<>();
+        final JsonSerde<TraceDto> valueSerde = new JsonSerde<>();
         valueSerde.deserializer().addTrustedPackages("*");
+
         final KStream<String, TraceDto> stream = streamsBuilder.stream(
             "trace",
             Consumed.with(
                 Serdes.String(),
                 valueSerde));
 
-        final BiConsumer<Function<TraceDto, String>, String> mapFunc = (func, topic) ->
-            stream.mapValues(func::apply)
-                .groupBy(BY_VALUE)
-                .windowedBy(ONE_SECOND)
-                .count()
-                .toStream()
-                .foreach((k, v) ->
-                    traceRepository.save(traceMapper.toEntity(v)));
-        //mapFunc.accept(TraceInfo::getServiceName, "trace.count.service");
-        mapFunc.accept(TraceDto::getExceptionClass, "trace.count.exception");
-        mapFunc.accept(v -> v.getMethodClass() + "#" + v.getMethodName(), "trace.count.method");
+        stream.foreach((k, v) ->
+            traceRepository.save(traceMapper.toEntity(v)));
+
         return stream;
     }
 }

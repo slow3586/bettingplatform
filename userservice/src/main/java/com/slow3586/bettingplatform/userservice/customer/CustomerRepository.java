@@ -9,4 +9,5 @@ import java.util.UUID;
 @Repository
 @Transactional
 public interface CustomerRepository extends CrudRepository<CustomerEntity, UUID> {
+    void deleteByUserId(UUID userId);
 }

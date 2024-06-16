@@ -1,6 +1,8 @@
 package com.slow3586.bettingplatform.betservice.bet;
 
 import com.slow3586.bettingplatform.api.mainservice.BetDto;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -23,18 +25,21 @@ public class BetRest {
 
     @GetMapping
     @PreAuthorize("isAuthenticated()")
+    @Operation(security = @SecurityRequirement(name = "BearerAuth"))
     public List<BetDto> getByCurrentUser() {
         return betService.getByCurrentUser();
     }
 
     @GetMapping("/{userId}")
     @PreAuthorize("isAuthenticated()")
+    @Operation(security = @SecurityRequirement(name = "BearerAuth"))
     public List<BetDto> getByUser(@PathVariable("userId") UUID userId) {
         return betService.getByUser(userId);
     }
 
     @PostMapping
     @PreAuthorize("isAuthenticated()")
+    @Operation(security = @SecurityRequirement(name = "BearerAuth"))
     public UUID make(BetDto betDto) {
         return betService.save(betDto);
     }

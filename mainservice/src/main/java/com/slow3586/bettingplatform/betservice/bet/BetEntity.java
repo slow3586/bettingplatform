@@ -6,8 +6,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.math.BigInteger;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.Instant;
 import java.util.UUID;
 
 @Data
@@ -16,10 +15,11 @@ import java.util.UUID;
 public class BetEntity {
     @Id
     UUID id;
+    UUID gameId;
     UUID userId;
     int typeId;
     String status;
     BigInteger amount;
     @Builder.Default
-    LocalDateTime createdAt = LocalDateTime.now(ZoneId.of("UTC"));
+    Instant createdAt = Instant.now();
 }

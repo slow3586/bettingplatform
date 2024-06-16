@@ -19,35 +19,34 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
-import java.time.Duration;
 
 @Service
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 @RequiredArgsConstructor
-@Slf4j
 public class MainServiceSecurityWebFilter extends OncePerRequestFilter {
     AuthServiceClient authServiceClient;
 
     @Override
     protected void doFilterInternal(
-        final HttpServletRequest request,
+        @NonNull final HttpServletRequest request,
         @NonNull final HttpServletResponse response,
-        final FilterChain filterChain
+        @NonNull final FilterChain filterChain
     ) throws ServletException, IOException {
-        Mono.justOrEmpty(request.getHeader("Authorization"))
-            .filter(s -> s.startsWith(SecurityUtils.BEARER_PREFIX))
-            .mapNotNull(s -> s.substring(SecurityUtils.BEARER_PREFIX.length()))
-            .mapNotNull(authServiceClient::token)
-            .map(uuid -> new UsernamePasswordAuthenticationToken(
-                uuid,
-                null,
-                AuthorityUtils.createAuthorityList("user")))
-            .single()
-            .onErrorReturn(new UsernamePasswordAuthenticationToken(
-                null,
-                null))
-            .blockOptional(Duration.ofSeconds(5))
-            .ifPresent(token -> SecurityContextHolder.getContext().setAuthentication(token));
+        final UsernamePasswordAuthenticationToken token =
+            Mono.justOrEmpty(request.getHeader("Authorization"))
+                .filter(s -> s.startsWith(SecurityUtils.BEARER_PREFIX))
+                .mapNotNull(s -> s.substring(SecurityUtils.BEARER_PREFIX.length()))
+                .mapNotNull(authServiceClient::token)
+                .map(uuid -> new UsernamePasswordAuthenticationToken(
+                    uuid,
+                    null,
+                    AuthorityUtils.createAuthorityList("user")))
+                .single()
+                .onErrorReturn(new UsernamePasswordAuthenticationToken(
+                    null,
+                    null))
+                .block();
+        SecurityContextHolder.getContext().setAuthentication(token);
         filterChain.doFilter(request, response);
     }
 }

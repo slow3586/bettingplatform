@@ -5,6 +5,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,8 +18,8 @@ import java.util.List;
 public class PriceRest {
     PriceService priceService;
 
-    @GetMapping("latest")
-    public List<PriceDto> getLatest() {
-        return priceService.getLatest();
+    @GetMapping("latest/{instrument}")
+    public List<PriceDto> getLatest(@PathVariable("instrument") String instrument) {
+        return priceService.getLatest(instrument);
     }
 }

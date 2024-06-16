@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
 
@@ -45,27 +47,27 @@ public class AuthService {
         return Mono.just(registerRequest)
             .publishOn(Schedulers.boundedElastic())
             .handle((request, sink) -> {
-                final UUID id = authRepository.save(
+                final UUID userId = UUID.randomUUID();
+                authRepository.save(
                     AuthEntity.builder()
+                        .userId(userId)
                         .login(request.getEmail())
                         .password(passwordEncoder.encode(request.getPassword()))
-                        .build()
-                ).getId();
+                        .build());
                 try {
                     customerRepository.save(
                         CustomerEntity.builder()
-                            .id(id)
+                            .userId(userId)
                             .email(registerRequest.getEmail())
                             .name("name")
                             .balance(0)
-                            .isNew(true)
                             .build());
                 } catch (Exception e) {
-                    authRepository.deleteById(id);
+                    authRepository.deleteByUserId(userId);
                     sink.error(e);
                     return;
                 }
-                sink.next(id);
+                sink.next(userId);
             });
     }
 
@@ -81,7 +83,7 @@ public class AuthService {
             Jwts.builder()
                 .id(UUID.randomUUID().toString())
                 .subject(id.toString())
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * authProperties.getExpirationMinutes()))
+                .expiration(Date.from(Instant.now().plus(Duration.ofMinutes(authProperties.getExpirationMinutes()))))
                 .signWith(Keys.hmacShaKeyFor(Decoders.BASE64.decode(authProperties.getToken())))
                 .compact());
     }
@@ -90,11 +92,10 @@ public class AuthService {
         return Mono.just(token)
             .map(t -> Jwts.parser()
                 .verifyWith(Keys.hmacShaKeyFor(Decoders.BASE64.decode(authProperties.getToken())))
-                .requireIssuer("v1")
                 .build()
                 .parseSignedClaims(token)
                 .getPayload())
-            .filter(claims -> claims.getExpiration().before(new Date()))
+            .filter(claims -> Instant.now().isBefore(claims.getExpiration().toInstant()))
             .map(Claims::getSubject);
     }
 }

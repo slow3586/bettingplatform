@@ -1,11 +1,13 @@
 package com.slow3586.bettingplatform.userservice.customer;
 
-import com.slow3586.bettingplatform.api.SecurityUtils;
 import com.slow3586.bettingplatform.api.userservice.CustomerDto;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -20,7 +22,7 @@ public class CustomerService {
     CustomerMapper customerMapper;
 
     public Mono<CustomerDto> getByCurrentUser() {
-        return this.getPrivateByUser(SecurityUtils.getPrincipalId());
+        return this.getCurrentUserId().flatMap(this::getPrivateByUser);
     }
 
     public Mono<CustomerDto> getPrivateByUser(UUID uuid) {
@@ -31,6 +33,14 @@ public class CustomerService {
     }
 
     public Mono<CustomerDto> getPublicByUser(UUID uuid) {
-        return this.getPrivateByUser(SecurityUtils.getPrincipalId());
+        return null;
+    }
+
+    public Mono<UUID> getCurrentUserId() {
+        return ReactiveSecurityContextHolder.getContext()
+            .mapNotNull(SecurityContext::getAuthentication)
+            .mapNotNull(Authentication::getPrincipal)
+            .map(Object::toString)
+            .map(UUID::fromString);
     }
 }

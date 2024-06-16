@@ -2,11 +2,11 @@ package com.slow3586.bettingplatform.betservice.game;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.NonNull;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.Instant;
 import java.util.UUID;
 
 @Data
@@ -15,15 +15,22 @@ import java.util.UUID;
 public class GameEntity {
     @Id
     UUID id;
+    @NonNull
     String instrument;
-    LocalDateTime startAt;
-    LocalDateTime finishAt;
+    @NonNull
+    Instant startAt;
+    @NonNull
+    Instant finishAt;
     @Builder.Default
-    LocalDateTime createdAt = LocalDateTime.now(ZoneId.of("UTC"));
+    @NonNull
+    Instant createdAt = Instant.now();
+    @NonNull
     String choice0;
+    @NonNull
     String choice1;
     String choice2;
     int winningChoice;
     @Builder.Default
+    @NonNull
     String status = "new";
 }

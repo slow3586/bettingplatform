@@ -17,7 +17,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @RequestMapping("auth")
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
-public class AuthServiceRest {
+public class AuthRest {
     AuthService authService;
 
     @PostMapping(value = "login")

@@ -98,10 +98,10 @@ public class WebSocketConfig {
             props,
             new StringDeserializer(),
             new DelegatingByTopicDeserializer(Map.of(
-                Pattern.compile("bet"), new JsonDeserializer<>(BetDto.class),
-                Pattern.compile("price"), new JsonDeserializer<>(PriceDto.class),
-                Pattern.compile("game"), new JsonDeserializer<>(GameDto.class),
-                Pattern.compile("chat_post"), new JsonDeserializer<>(ChatPostDto.class)
+                Pattern.compile("bet.*"), new JsonDeserializer<>(BetDto.class),
+                Pattern.compile("price.*"), new JsonDeserializer<>(PriceDto.class),
+                Pattern.compile("game.*"), new JsonDeserializer<>(GameDto.class),
+                Pattern.compile("chat_post.*"), new JsonDeserializer<>(ChatPostDto.class)
             ), new StringDeserializer())
         );
     }

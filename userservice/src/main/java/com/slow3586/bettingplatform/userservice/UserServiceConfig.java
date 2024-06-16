@@ -1,5 +1,6 @@
 package com.slow3586.bettingplatform.userservice;
 
+import jakarta.annotation.PostConstruct;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -19,6 +20,11 @@ import org.springframework.security.web.server.context.WebSessionServerSecurityC
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public class UserServiceConfig {
     UserServiceSecurityWebFilter userServiceSecurityWebFilter;
+
+    @PostConstruct
+    public void postConstruct() {
+        //Hooks.onNextError((e) -> {});
+    }
 
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {

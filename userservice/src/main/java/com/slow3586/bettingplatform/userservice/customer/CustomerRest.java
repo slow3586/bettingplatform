@@ -19,7 +19,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 @RequestMapping("customer")
-public class CustomerServiceRest {
+public class CustomerRest {
     CustomerService customerService;
 
     @GetMapping

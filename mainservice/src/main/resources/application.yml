@@ -5,11 +5,19 @@ spring:
     web-application-type: servlet
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: 'jdbc:postgresql://localhost:5434/postgres'
+    url: 'jdbc:postgresql://localhost:5435/postgres'
     username: postgres
     password: postgres
-
+  jackson:
+    default-property-inclusion: non_absent
+  kafka:
+    consumer:
+      properties:
+        spring.json.trusted.packages: '*'
+  json.trusted.packages: '*'
 app:
+  client:
+    user: http://localhost:8081
   price:
     request-path: 'https://api.binance.com/api/v3/uiKlines?symbol=BNBUSDT&interval=1s&limit=1'
     request-date-format: 'yyyy-MM-dd\\THH:mm'
@@ -34,3 +42,9 @@ management:
     metrics:
       export:
         enabled: true
+  tracing:
+    enabled: true
+    sampling.probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans

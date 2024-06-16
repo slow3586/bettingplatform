@@ -39,3 +39,12 @@ CREATE TABLE chat_post
     type_id    integer                                    NOT NULL,
     status     varchar(1000)                              NOT NULL
 );
+
+CREATE TABLE metric
+(
+    id    uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+    time  timestamp                                  NOT NULL,
+    name  varchar(1000),
+    key   varchar(1000),
+    value varchar(1000)
+);

@@ -5,7 +5,7 @@ import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Data
@@ -14,7 +14,7 @@ import java.util.UUID;
 public class PriceEntity {
     @Id
     UUID id;
-    LocalDateTime time;
+    Instant time;
     String instrument;
     double value;
 }

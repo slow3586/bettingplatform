@@ -13,6 +13,7 @@ import java.util.UUID;
 public class AuthEntity {
     @Id
     UUID id;
+    UUID userId;
     String login;
     String password;
     String role;

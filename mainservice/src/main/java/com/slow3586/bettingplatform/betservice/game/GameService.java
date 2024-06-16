@@ -10,8 +10,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.Instant;
 import java.util.List;
 import java.util.Random;
 
@@ -22,7 +21,7 @@ import java.util.Random;
 public class GameService {
     GameRepository gameRepository;
     GameMapper gameMapper;
-    KafkaTemplate<String, Object> gameKafkaProducer;
+    KafkaTemplate<String, Object> kafkaTemplate;
     Random random = new Random();
 
     public List<GameDto> getCurrent() {
@@ -34,13 +33,22 @@ public class GameService {
 
     public void save(GameDto gameDto) {
         final GameEntity save = gameRepository.save(gameMapper.toEntity(gameDto));
-        gameKafkaProducer.send("game", gameMapper.toDto(save));
+        kafkaTemplate.send("game", gameMapper.toDto(save));
     }
 
     @Async
-    @Scheduled(cron = "* * * * * *")
-    public void startGame() {
-        final LocalDateTime now = LocalDateTime.now(ZoneId.of("UTC"));
+    @Scheduled(fixedRate = 1000)
+    public void checkGames() {
+        final Instant now = Instant.now();
+
+        gameRepository.findReadyToBeFinished()
+            .stream()
+            .map(gameMapper::toDto)
+            .forEach(game -> {
+                game.setFinished(true);
+                this.save(game);
+            });
+
         if (gameRepository.findUnfinished().isEmpty()) {
             this.save(GameDto.builder()
                 .instrument("BTC")
@@ -52,17 +60,5 @@ public class GameService {
                 .finishAt(now.plusSeconds(30 + random.nextInt(60)))
                 .build());
         }
-    }
-
-    @Async
-    @Scheduled(cron = "* * * * * *")
-    public void finishGames() {
-        gameRepository.findReadyToBeFinished()
-            .stream()
-            .map(gameMapper::toDto)
-            .forEach(game -> {
-                game.setFinished(true);
-                this.save(game);
-            });
     }
 }

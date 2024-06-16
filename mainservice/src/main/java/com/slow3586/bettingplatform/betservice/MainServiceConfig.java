@@ -1,9 +1,11 @@
 package com.slow3586.bettingplatform.betservice;
 
+import com.slow3586.bettingplatform.api.TraceDto;
 import com.slow3586.bettingplatform.api.mainservice.BetDto;
 import com.slow3586.bettingplatform.api.mainservice.ChatPostDto;
 import com.slow3586.bettingplatform.api.mainservice.GameDto;
 import com.slow3586.bettingplatform.api.mainservice.PriceDto;
+import io.micrometer.core.instrument.Meter;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -35,7 +37,6 @@ public class MainServiceConfig {
     public DefaultSecurityFilterChain securityWebFilterChain(HttpSecurity http) throws Exception {
         return http.csrf(AbstractHttpConfigurer::disable)
             .cors(AbstractHttpConfigurer::disable)
-            .logout(l -> l.logoutUrl("/logout"))
             .formLogin(AbstractHttpConfigurer::disable)
             .httpBasic(AbstractHttpConfigurer::disable)
             .securityContext(c -> c.securityContextRepository(
@@ -53,10 +54,12 @@ public class MainServiceConfig {
                 ),
                 new StringSerializer(),
                 new DelegatingByTopicSerializer(Map.of(
-                    Pattern.compile("bet"), new JsonSerializer<BetDto>(),
-                    Pattern.compile("price"), new JsonSerializer<PriceDto>(),
-                    Pattern.compile("game"), new JsonSerializer<GameDto>(),
-                    Pattern.compile("chat_post"), new JsonSerializer<ChatPostDto>()
+                    Pattern.compile("metric.*"), new JsonSerializer<Meter>(),
+                    Pattern.compile("trace.*"), new JsonSerializer<TraceDto>(),
+                    Pattern.compile("bet.*"), new JsonSerializer<BetDto>(),
+                    Pattern.compile("price.*"), new JsonSerializer<PriceDto>(),
+                    Pattern.compile("game.*"), new JsonSerializer<GameDto>(),
+                    Pattern.compile("chat_post.*"), new JsonSerializer<ChatPostDto>()
                 ), new StringSerializer())));
     }
 

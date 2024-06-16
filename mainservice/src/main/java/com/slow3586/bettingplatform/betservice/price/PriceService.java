@@ -12,8 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.Instant;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -30,8 +29,8 @@ public class PriceService {
     PriceMapper priceMapper;
     Pattern pricePattern;
 
-    public List<PriceDto> getLatest() {
-        return priceRepository.findLatest()
+    public List<PriceDto> getLatest(String instrument) {
+        return priceRepository.findLatest(instrument)
             .stream()
             .map(priceMapper::toDto)
             .toList();
@@ -43,9 +42,10 @@ public class PriceService {
     }
 
     @Async
-    @Scheduled(cron = "0/1 * * * * *")
+    @Scheduled(cron = "*/1 * * * * *")
     public void updatePrice() {
-        webClient.get()
+        Mono<String> stringMono = webClient
+            .get()
             .retrieve()
             .bodyToMono(String.class)
             .flatMap(priceString -> {
@@ -53,11 +53,12 @@ public class PriceService {
                 return matcher.matches()
                     ? Mono.just(matcher.group(1))
                     : Mono.error(new IllegalArgumentException("Price not found: " + priceString));
-            })
+            });
+        Mono.just("100")
             .mapNotNull(d -> PriceDto.builder()
                 .value(Double.parseDouble(d))
                 .instrument(priceProperties.getRequestInstrument())
-                .time(LocalDateTime.now(ZoneId.of("UTC")))
+                .time(Instant.now())
                 .build())
             .doOnNext(this::save)
             .onErrorMap(Exception.class,

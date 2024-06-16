@@ -1,5 +1,6 @@
 package com.slow3586.bettingplatform.api;
 
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -15,6 +16,6 @@ public class SecurityUtils {
             .map(Authentication::getPrincipal)
             .filter(p -> p instanceof UUID)
             .map(p -> ((UUID) p))
-            .orElseThrow();
+            .orElseThrow(() -> new AccessDeniedException("No authentication"));
     }
 }

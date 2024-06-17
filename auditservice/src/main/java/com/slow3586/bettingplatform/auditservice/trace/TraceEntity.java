@@ -21,6 +21,7 @@ public class TraceEntity implements MongoUuidEntity {
     UUID id;
     Instant time;
     String serviceName;
+    String hostName;
     String spanId;
     String traceId;
     String eventId;

@@ -30,7 +30,6 @@ public class UserServiceConfig {
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         return http.csrf(ServerHttpSecurity.CsrfSpec::disable)
             .cors(ServerHttpSecurity.CorsSpec::disable)
-            .logout(l -> l.logoutUrl("/logout"))
             .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
             .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
             .securityContextRepository(new WebSessionServerSecurityContextRepository())

@@ -2,6 +2,7 @@ package com.slow3586.bettingplatform.userservice.auth;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
@@ -15,6 +16,7 @@ public class AuthEntity {
     UUID id;
     UUID userId;
     String login;
-    String password;
     String role;
+    @ToString.Exclude
+    String password;
 }

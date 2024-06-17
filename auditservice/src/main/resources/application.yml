@@ -12,9 +12,6 @@ spring:
       uuid-representation: standard
   jackson:
     default-property-inclusion: non_absent
-app:
-  audit-service:
-    kafka-broker: 'localhost:9091'
 
 management:
   endpoints:

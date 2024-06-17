@@ -1,5 +1,11 @@
 package com.slow3586.bettingplatform.userservice.auth;
 
+import com.fasterxml.jackson.core.ObjectCodec;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -8,14 +14,22 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import javax.crypto.SecretKey;
 import java.security.SecureRandom;
 
 @Configuration
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public class AuthConfig {
+    AuthProperties authProperties;
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(4, new SecureRandom(new byte[]{1, 2, 3}));
+    }
+
+    @Bean
+    public SecretKey secretKey(){
+        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(authProperties.getToken()));
     }
 }

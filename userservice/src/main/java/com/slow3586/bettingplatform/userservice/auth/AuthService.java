@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import javax.crypto.SecretKey;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
@@ -31,6 +32,7 @@ public class AuthService {
     CustomerRepository customerRepository;
     AuthProperties authProperties;
     PasswordEncoder passwordEncoder;
+    SecretKey secretKey;
 
     public Mono<String> login(LoginRequest loginRequest) {
         return Mono.just(loginRequest)
@@ -46,6 +48,7 @@ public class AuthService {
     public Mono<UUID> register(RegisterRequest registerRequest) {
         return Mono.just(registerRequest)
             .publishOn(Schedulers.boundedElastic())
+            .filter(request -> !authRepository.existsByLogin(request.getEmail()))
             .handle((request, sink) -> {
                 final UUID userId = UUID.randomUUID();
                 authRepository.save(
@@ -73,6 +76,7 @@ public class AuthService {
 
     public Mono<UUID> token(String token) {
         return Mono.just(token)
+            .publishOn(Schedulers.boundedElastic())
             .flatMap(this::getTokenSubject)
             .map(UUID::fromString)
             .filter(authRepository::existsById);
@@ -84,14 +88,14 @@ public class AuthService {
                 .id(UUID.randomUUID().toString())
                 .subject(id.toString())
                 .expiration(Date.from(Instant.now().plus(Duration.ofMinutes(authProperties.getExpirationMinutes()))))
-                .signWith(Keys.hmacShaKeyFor(Decoders.BASE64.decode(authProperties.getToken())))
+                .signWith(secretKey)
                 .compact());
     }
 
     protected Mono<String> getTokenSubject(String token) {
         return Mono.just(token)
             .map(t -> Jwts.parser()
-                .verifyWith(Keys.hmacShaKeyFor(Decoders.BASE64.decode(authProperties.getToken())))
+                .verifyWith(secretKey)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload())

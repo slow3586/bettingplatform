@@ -3,6 +3,8 @@ services:
   user-service:
     build: ./userservice
     depends_on:
+      audit-service:
+        condition: service_healthy
       kafka-broker-0:
         condition: service_healthy
       user-service-db:
@@ -37,6 +39,8 @@ services:
   main-service:
     build: ./mainservice
     depends_on:
+      audit-service:
+        condition: service_healthy
       kafka-broker-0:
         condition: service_healthy
       main-service-db:
@@ -46,9 +50,8 @@ services:
     environment:
       - spring.datasource.url=jdbc:postgresql://main-service-db:5432/postgres
       - app.client.user=http://user-service:8080
-      - app.main-service.kafka-broker=kafka-broker-0:9091
+      - KAFKA_BROKERS=kafka-broker-0:9091
       - management.zipkin.tracing.endpoint=http://zipkin:9411/api/v2/spans
-      - LOGBACK_KAFKA_SERVERS=kafka-broker-0:9091
     healthcheck:
       test: "curl --fail --silent 127.0.0.1:8080/actuator/health | grep UP || exit 1"
       interval: 2s
@@ -78,15 +81,21 @@ services:
         condition: service_healthy
       audit-service-db:
         condition: service_healthy
+      loki:
+        condition: service_started
+      grafana:
+        condition: service_started
+      zipkin:
+        condition: service_started
     ports:
       - "8083:8080"
     environment:
       - spring.data.mongodb.uri=mongodb://audit-service-db:27017/db
-      - app.audit-service.kafka-broker=kafka-broker-0:9091
       - management.zipkin.tracing.endpoint=http://zipkin:9411/api/v2/spans
       - spring.data.mongodb.host=mongodb-router
       - spring.data.mongodb.port=27017
       - LOGBACK_LOKI_URL=http://loki:3100
+      - KAFKA_BROKERS=kafka-broker-0:9091
     healthcheck:
       test: "curl --fail --silent 127.0.0.1:8080/actuator/health | grep UP || exit 1"
       interval: 2s
@@ -118,6 +127,8 @@ services:
   websocket-service:
     build: ./websocketservice
     depends_on:
+      audit-service:
+        condition: service_healthy
       user-service:
         condition: service_healthy
       kafka-broker-0:
@@ -156,6 +167,9 @@ services:
 
   kafka-zookeeper:
     image: confluentinc/cp-zookeeper:7.4.4
+    depends_on:
+      kafdrop:
+        condition: service_started
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -184,10 +198,8 @@ services:
       timeout: 2s
       retries: 20
 
-  kafka-kafdrop:
+  kafdrop:
     image: obsidiandynamics/kafdrop
-    depends_on:
-      - kafka-broker-0
     ports:
       - "9000:9000"
     environment:

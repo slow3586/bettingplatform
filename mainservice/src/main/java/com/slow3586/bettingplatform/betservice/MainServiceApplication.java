@@ -8,10 +8,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 
 @EnableScheduling
 @EnableAsync
@@ -19,8 +21,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @ConfigurationPropertiesScan
 @EnableConfigurationProperties
 @EnableKafka
-@EnableAspectJAutoProxy
 @EnableFeignClients(basePackages = "com.slow3586.bettingplatform.api.userservice")
+@ComponentScan(value = {"com.slow3586.bettingplatform.*"})
+@EnableWebSecurity
 @SecurityScheme(
     name = "BearerAuth",
     scheme = "bearer",

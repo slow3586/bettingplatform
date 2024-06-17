@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Duration;
 import java.time.Instant;
 
 @Data
@@ -14,11 +15,11 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TraceDto {
-    Instant time;
-    String serviceName;
+    Instant startTime;
+    Instant endTime;
+    Duration duration;
     String spanId;
     String traceId;
-    String eventId;
     String methodClass;
     String methodName;
     String methodArgs;

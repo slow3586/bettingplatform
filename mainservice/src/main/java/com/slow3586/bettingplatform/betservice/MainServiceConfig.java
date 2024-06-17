@@ -7,11 +7,18 @@ import com.slow3586.bettingplatform.api.mainservice.BetDto;
 import com.slow3586.bettingplatform.api.mainservice.ChatPostDto;
 import com.slow3586.bettingplatform.api.mainservice.GameDto;
 import com.slow3586.bettingplatform.api.mainservice.PriceDto;
+import jakarta.annotation.PostConstruct;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.NonFinal;
+import org.apache.kafka.clients.admin.Admin;
+import org.apache.kafka.clients.admin.AdminClientConfig;
+import org.apache.kafka.clients.admin.CreateTopicsOptions;
+import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
@@ -26,6 +33,7 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -35,8 +43,24 @@ import java.util.regex.Pattern;
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 @AuditDisabled
 public class MainServiceConfig {
-    MainServiceProperties mainServiceProperties;
+    @NonFinal
+    @Value("${KAFKA_BROKERS:localhost:9091}")
+    String kafkaBrokers;
     MainServiceSecurityWebFilter securityWebFilter;
+
+    @PostConstruct
+    public void postConstruct() {
+        try (final Admin admin = Admin.create(Map.of(
+            AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBrokers
+        ))) {
+            admin.createTopics(List.of(
+                    new NewTopic("bet", 1, (short) 1),
+                    new NewTopic("game", 1, (short) 1),
+                    new NewTopic("price", 1, (short) 1),
+                    new NewTopic("chat_post", 1, (short) 1)),
+                new CreateTopicsOptions());
+        }
+    }
 
     @Bean
     public DefaultSecurityFilterChain securityWebFilterChain(HttpSecurity http) throws Exception {
@@ -55,16 +79,9 @@ public class MainServiceConfig {
         return new KafkaTemplate<>(
             new DefaultKafkaProducerFactory<>(
                 Map.of(
-                    ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, mainServiceProperties.getKafkaBroker()
+                    ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBrokers
                 ),
                 new StringSerializer(),
-                new DelegatingByTopicSerializer(Map.of(
-                    Pattern.compile("metric.*"), new JsonSerializer<HashMap<String, String>>(),
-                    Pattern.compile("trace.*"), new JsonSerializer<TraceDto>(),
-                    Pattern.compile("bet.*"), new JsonSerializer<BetDto>(),
-                    Pattern.compile("price.*"), new JsonSerializer<PriceDto>(),
-                    Pattern.compile("game.*"), new JsonSerializer<GameDto>(),
-                    Pattern.compile("chat_post.*"), new JsonSerializer<ChatPostDto>()
-                ), new StringSerializer())));
+                new JsonSerializer<>()));
     }
 }

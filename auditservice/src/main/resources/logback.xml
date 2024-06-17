@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <variable name="LOGBACK_LOKI_URL" value="${LOGBACK_LOKI_URL:-http://localhost:3100}" />
+    <variable name="LOGBACK_LOKI_URL" value="${LOGBACK_LOKI_URL:http://localhost:3100}" />
 
     <appender name="STDOUT_APPENDER" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <variable name="KAFKA_BROKERS" value="${KAFKA_BROKERS:-localhost:9091}" />
+    <variable name="LOGBACK_KAFKA_SERVERS" value="${LOGBACK_KAFKA_SERVERS:localhost:9091}" />
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -15,10 +15,10 @@
         <topic>logs</topic>
         <keyingStrategy class="com.github.danielwegener.logback.kafka.keying.NoKeyKeyingStrategy" />
         <deliveryStrategy class="com.github.danielwegener.logback.kafka.delivery.AsynchronousDeliveryStrategy" />
-        <producerConfig>bootstrap.servers=${KAFKA_BROKERS}</producerConfig>
+        <producerConfig>bootstrap.servers=${LOGBACK_KAFKA_SERVERS}</producerConfig>
     </appender>
 
-    <root level="INFO">
+    <root level="DEBUG">
         <appender-ref ref="KAFKA" />
         <appender-ref ref="STDOUT" />
     </root>

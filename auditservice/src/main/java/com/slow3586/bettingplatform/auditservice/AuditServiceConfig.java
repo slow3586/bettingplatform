@@ -4,10 +4,12 @@ import com.slow3586.bettingplatform.api.MongoUuidEntity;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.NonFinal;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
@@ -25,13 +27,15 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public class AuditServiceConfig {
-    AuditServiceProperties auditServiceProperties;
+    @NonFinal
+    @Value("${KAFKA_BROKERS:localhost:9091}")
+    String kafkaBrokers;
 
     @Bean(name = KafkaStreamsDefaultConfiguration.DEFAULT_STREAMS_CONFIG_BEAN_NAME)
     public KafkaStreamsConfiguration kStreamsConfigs() {
         Map<String, Object> props = new HashMap<>();
         props.put(StreamsConfig.APPLICATION_ID_CONFIG, "audit-service");
-        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, auditServiceProperties.getKafkaBroker());
+        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBrokers);
         props.put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG, "1000");
         props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());

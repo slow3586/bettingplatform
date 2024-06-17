@@ -16,6 +16,5 @@ import java.util.Map;
 @AllArgsConstructor
 public class MetricDto {
     Instant time;
-    String serviceName;
     Map<String, Double> values;
 }

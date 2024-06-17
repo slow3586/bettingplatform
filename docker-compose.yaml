@@ -9,9 +9,9 @@ services:
         condition: service_healthy
     environment:
       - spring.datasource.url=jdbc:postgresql://user-service-db:5432/postgres
+      - management.zipkin.tracing.endpoint=http://zipkin:9411/api/v2/spans
     ports:
       - "8081:8080"
-      - "5006:5005"
     healthcheck:
       test: "curl --fail --silent 127.0.0.1:8080/actuator/health | grep UP || exit 1"
       interval: 2s
@@ -43,11 +43,12 @@ services:
         condition: service_healthy
     ports:
       - "8082:8080"
-      - "5007:5005"
     environment:
       - spring.datasource.url=jdbc:postgresql://main-service-db:5432/postgres
       - app.client.user=http://user-service:8080
       - app.main-service.kafka-broker=kafka-broker-0:9091
+      - management.zipkin.tracing.endpoint=http://zipkin:9411/api/v2/spans
+      - LOGBACK_KAFKA_SERVERS=kafka-broker-0:9091
     healthcheck:
       test: "curl --fail --silent 127.0.0.1:8080/actuator/health | grep UP || exit 1"
       interval: 2s
@@ -66,15 +67,48 @@ services:
       - "5435:5432"
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
-      interval: 5s
-      timeout: 5s
-      retries: 3
+      interval: 2s
+      timeout: 2s
+      retries: 20
+
+  audit-service:
+    build: ./auditservice
+    depends_on:
+      kafka-broker-0:
+        condition: service_healthy
+      audit-service-db:
+        condition: service_healthy
+    ports:
+      - "8083:8080"
+    environment:
+      - spring.data.mongodb.uri=mongodb://audit-service-db:27017/db
+      - app.audit-service.kafka-broker=kafka-broker-0:9091
+      - management.zipkin.tracing.endpoint=http://zipkin:9411/api/v2/spans
+      - spring.data.mongodb.host=mongodb-router
+      - spring.data.mongodb.port=27017
+      - LOGBACK_LOKI_URL=http://loki:3100
+    healthcheck:
+      test: "curl --fail --silent 127.0.0.1:8080/actuator/health | grep UP || exit 1"
+      interval: 2s
+      timeout: 2s
+      retries: 20
+
+  audit-service-db:
+    image: mongo:7.0.8
+    ports:
+      - "27017:27017"
+    extra_hosts:
+      - audit-service-db:127.0.0.1
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh 127.0.0.1:27017/test --quiet
+      interval: 2s
+      timeout: 2s
+      retries: 20
 
   frontend-service:
     build: ./frontendservice
     ports:
-      - "8083:8080"
-      - "5008:5005"
+      - "8084:8080"
     healthcheck:
       test: "curl --fail --silent 127.0.0.1:8080/actuator/health | grep UP || exit 1"
       interval: 2s
@@ -91,8 +125,7 @@ services:
       websocket-service-rabbitmq:
         condition: service_healthy
     ports:
-      - "8084:8080"
-      - "5009:5005"
+      - "8085:8080"
     environment:
       - spring.rabbitmq.host=websocket-service-rabbitmq
       - app.websocket.kafka-broker=kafka-broker-0:9091
@@ -164,6 +197,12 @@ services:
     image: openzipkin/zipkin:3.4
     ports:
       - "9411:9411"
+
+  loki:
+    image: grafana/loki:2.9.2
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
 
   grafana:
     image: grafana/grafana:10.4.4

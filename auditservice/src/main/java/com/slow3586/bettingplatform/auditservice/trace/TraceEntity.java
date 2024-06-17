@@ -1,19 +1,24 @@
-package com.slow3586.bettingplatform.api;
+package com.slow3586.bettingplatform.auditservice.trace;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
+import com.slow3586.bettingplatform.api.MongoUuidEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Data
 @Builder
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @NoArgsConstructor
 @AllArgsConstructor
-public class TraceDto {
+@Document("trace")
+public class TraceEntity implements MongoUuidEntity {
+    @Id
+    UUID id;
     Instant time;
     String serviceName;
     String spanId;

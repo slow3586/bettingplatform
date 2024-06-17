@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <variable name="LOGBACK_LOKI_URL" value="${LOGBACK_LOKI_URL:-http://localhost:3100}" />
+
+    <appender name="STDOUT_APPENDER" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="KAFKA_TO_LOKI_APPENDER" class="com.github.loki4j.logback.Loki4jAppender">
+        <http>
+            <url>${LOGBACK_LOKI_URL}/loki/api/v1/push</url>
+        </http>
+        <format>
+            <message>
+                <pattern>%msg%n</pattern>
+            </message>
+        </format>
+    </appender>
+
+    <appender name="LOKI_APPENDER" class="com.github.loki4j.logback.Loki4jAppender">
+        <http>
+            <url>${LOGBACK_LOKI_URL}/loki/api/v1/push</url>
+        </http>
+        <format>
+            <message>
+                <pattern>%d{HH:mm:ss.SSS} [audit-service] [${HOSTNAME}] [%thread] %-5level %logger{36} - %msg%n</pattern>
+            </message>
+        </format>
+    </appender>
+
+    <logger name="KAFKA_TO_LOKI_LOGGER" level="INFO" additivity="false">
+        <appender-ref ref="KAFKA_TO_LOKI_APPENDER" />
+    </logger>
+    <root level="info">
+        <appender-ref ref="LOKI_APPENDER" />
+        <appender-ref ref="STDOUT_APPENDER" />
+    </root>
+</configuration>

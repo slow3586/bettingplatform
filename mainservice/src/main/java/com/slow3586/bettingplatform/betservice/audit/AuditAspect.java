@@ -1,6 +1,6 @@
 package com.slow3586.bettingplatform.betservice.audit;
 
-import com.slow3586.bettingplatform.api.TraceDto;
+import com.slow3586.bettingplatform.api.auditservice.TraceDto;
 import io.micrometer.tracing.TraceContext;
 import io.micrometer.tracing.Tracer;
 import lombok.AccessLevel;
@@ -26,63 +26,40 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public class AuditAspect {
-    static String TOPIC = "trace";
     static String SERVICE_NAME = "main";
-    AuditAsyncService auditAsyncService;
+    @Lazy
+    AuditService auditService;
     @Lazy
     Tracer tracer;
 
-    @Pointcut("within(com.slow3586.bettingplatform..*) " +
-        "&& !within(com.slow3586.bettingplatform.betservice.audit..*)")
-    public void anyThisApp() {
-    }
-
-    @Pointcut("execution(public * *(..))")
-    public void anyPublic() {
-    }
-
-    @Pointcut("!within(is(EnumType)) && !within(is(FinalType))")
-    public void notFinal() {
-    }
-
-    @Pointcut("!@within(com.slow3586.bettingplatform.betservice.audit.AuditDisabled) && @within(org.springframework.stereotype.Service)")
-    public void anyComponent() {
-    }
-
-    @Pointcut("anyPublic() && anyThisApp() && anyComponent()")
-    public void fullTracing() {
-    }
-
-    @Around("within(com.slow3586.bettingplatform..*) " +
-        "&& !within(com.slow3586.bettingplatform.betservice.audit..*))" +
+    @Around("within(com.slow3586.bettingplatform.betservice.*..*) " +
         "&& !within(is(EnumType)) && !within(is(FinalType))" +
-        "&& !within(com.slow3586.bettingplatform.betservice.audit..*))" +
-        "&& !@within(com.slow3586.bettingplatform.betservice.audit.AuditDisabled)" +
-        "&& @within(org.springframework.stereotype.Service)" +
-        "&& @within(org.springframework.stereotype.Repository)" +
-        "&& execution(public * *(..))")
+        "&& !within(com.slow3586.bettingplatform.betservice.audit..*)) " +
+        "&& execution(public * *(..))" +
+        "&& @within(org.springframework.stereotype.Service)")
     public Object joinPoint(@NonNull ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
         final TraceDto.TraceDtoBuilder traceInfo = getTrace(proceedingJoinPoint);
 
-        auditAsyncService.send(traceInfo.eventId("enter"));
+        auditService.sendTraceAsync(traceInfo.eventId("enter"));
 
         final Object result = proceedingJoinPoint.proceed();
 
-        auditAsyncService.send(traceInfo.eventId("exit").methodResult(Objects.toString(result)));
+        auditService.sendTraceAsync(traceInfo.eventId("exit").methodResult(Objects.toString(result)));
 
         return result;
     }
 
-    @AfterThrowing(pointcut = "!within(com.slow3586.bettingplatform.betservice.audit..*))" +
-        "&& !within(is(EnumType)) && !within(is(FinalType))" +
-        "&& !within(com.slow3586.bettingplatform.betservice.audit..*))" +
-        "&& !@within(com.slow3586.bettingplatform.betservice.audit.AuditDisabled)" +
-        "&& execution(public * *(..))",
+    @AfterThrowing(pointcut =
+        "within(com.slow3586.bettingplatform.betservice.*..*) " +
+            "&& !within(is(EnumType)) && !within(is(FinalType))" +
+            "&& !within(com.slow3586.bettingplatform.betservice.audit..*)) " +
+            "&& execution(public * *(..))" +
+            "&& @within(org.springframework.stereotype.Service)",
         throwing = "exception")
     public void afterThrowing(JoinPoint joinPoint, Throwable exception) throws Throwable {
         final TraceDto.TraceDtoBuilder traceInfo = getTrace(joinPoint);
 
-        auditAsyncService.send(traceInfo
+        auditService.sendTraceAsync(traceInfo
             .eventId("error")
             .exceptionClass(exception.getClass().getSimpleName())
             .exceptionMessage(exception.getMessage())

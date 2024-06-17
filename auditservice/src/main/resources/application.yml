@@ -1,0 +1,40 @@
+spring:
+  application:
+    name: 'audit-service'
+  security:
+    user:
+      name: "admin"
+      password: "admin"
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      uuid-representation: standard
+  jackson:
+    default-property-inclusion: non_absent
+app:
+  audit-service:
+    kafka-broker: 'localhost:9091'
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus
+  endpoint:
+    health:
+      enabled: true
+  metrics:
+    distribution:
+      percentiles-histogram:
+        "[http.server.requests]": true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  tracing:
+    enabled: true
+    sampling.probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans

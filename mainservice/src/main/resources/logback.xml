@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <variable name="LOGBACK_KAFKA_SERVERS" value="${LOGBACK_KAFKA_SERVERS:-localhost:9091}" />
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="KAFKA" class="com.github.danielwegener.logback.kafka.KafkaAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [main-service] [${HOSTNAME}] [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+        <topic>logs</topic>
+        <keyingStrategy class="com.github.danielwegener.logback.kafka.keying.NoKeyKeyingStrategy" />
+        <deliveryStrategy class="com.github.danielwegener.logback.kafka.delivery.AsynchronousDeliveryStrategy" />
+        <producerConfig>bootstrap.servers=${LOGBACK_KAFKA_SERVERS}</producerConfig>
+    </appender>
+
+    <root level="info">
+        <appender-ref ref="KAFKA" />
+        <appender-ref ref="STDOUT" />
+    </root>
+</configuration>

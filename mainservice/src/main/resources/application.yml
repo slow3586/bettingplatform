@@ -10,11 +10,6 @@ spring:
     password: postgres
   jackson:
     default-property-inclusion: non_absent
-  kafka:
-    consumer:
-      properties:
-        spring.json.trusted.packages: '*'
-  json.trusted.packages: '*'
 app:
   client:
     user: http://localhost:8081

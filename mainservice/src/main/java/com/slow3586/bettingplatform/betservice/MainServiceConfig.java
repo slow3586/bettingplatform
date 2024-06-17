@@ -1,11 +1,12 @@
 package com.slow3586.bettingplatform.betservice;
 
-import com.slow3586.bettingplatform.api.TraceDto;
+import com.slow3586.bettingplatform.api.MongoUuidEntity;
+import com.slow3586.bettingplatform.api.auditservice.AuditDisabled;
+import com.slow3586.bettingplatform.api.auditservice.TraceDto;
 import com.slow3586.bettingplatform.api.mainservice.BetDto;
 import com.slow3586.bettingplatform.api.mainservice.ChatPostDto;
 import com.slow3586.bettingplatform.api.mainservice.GameDto;
 import com.slow3586.bettingplatform.api.mainservice.PriceDto;
-import io.micrometer.core.instrument.Meter;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -22,13 +23,17 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import reactor.core.publisher.Mono;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 @Configuration
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
+@AuditDisabled
 public class MainServiceConfig {
     MainServiceProperties mainServiceProperties;
     MainServiceSecurityWebFilter securityWebFilter;
@@ -54,7 +59,7 @@ public class MainServiceConfig {
                 ),
                 new StringSerializer(),
                 new DelegatingByTopicSerializer(Map.of(
-                    Pattern.compile("metric.*"), new JsonSerializer<Meter>(),
+                    Pattern.compile("metric.*"), new JsonSerializer<HashMap<String, String>>(),
                     Pattern.compile("trace.*"), new JsonSerializer<TraceDto>(),
                     Pattern.compile("bet.*"), new JsonSerializer<BetDto>(),
                     Pattern.compile("price.*"), new JsonSerializer<PriceDto>(),
@@ -62,5 +67,4 @@ public class MainServiceConfig {
                     Pattern.compile("chat_post.*"), new JsonSerializer<ChatPostDto>()
                 ), new StringSerializer())));
     }
-
 }

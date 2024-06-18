@@ -11,6 +11,7 @@ services:
         condition: service_healthy
     environment:
       - spring.datasource.url=jdbc:postgresql://user-service-db:5432/postgres
+      - KAFKA_BROKERS=kafka-broker-0:9091
       - management.zipkin.tracing.endpoint=http://zipkin:9411/api/v2/spans
     ports:
       - "8081:8080"
@@ -118,6 +119,9 @@ services:
     build: ./frontendservice
     ports:
       - "8084:8080"
+    environment:
+      - KAFKA_BROKERS=kafka-broker-0:9091
+      - management.zipkin.tracing.endpoint=http://zipkin:9411/api/v2/spans
     healthcheck:
       test: "curl --fail --silent 127.0.0.1:8080/actuator/health | grep UP || exit 1"
       interval: 2s
@@ -139,10 +143,11 @@ services:
       - "8085:8080"
     environment:
       - spring.rabbitmq.host=websocket-service-rabbitmq
-      - app.websocket.kafka-broker=kafka-broker-0:9091
       - app.websocket.rabbit-host=websocket-service-rabbitmq
       - app.client.user=http://user-service:8080
       - app.client.main=http://main-service:8080
+      - KAFKA_BROKERS=kafka-broker-0:9091
+      - management.zipkin.tracing.endpoint=http://zipkin:9411/api/v2/spans
     healthcheck:
       test: "curl --fail --silent 127.0.0.1:8080/actuator/health | grep UP || exit 1"
       interval: 2s

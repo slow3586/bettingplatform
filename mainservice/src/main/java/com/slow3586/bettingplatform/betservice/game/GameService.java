@@ -37,7 +37,7 @@ public class GameService {
     }
 
     @Async
-    @Scheduled(fixedRate = 1000)
+    @Scheduled(fixedDelay = 1000)
     public void checkGames() {
         final Instant now = Instant.now();
 

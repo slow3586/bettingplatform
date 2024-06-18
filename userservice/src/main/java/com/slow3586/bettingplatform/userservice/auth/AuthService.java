@@ -41,7 +41,7 @@ public class AuthService {
             .filter(authEntity -> passwordEncoder.matches(
                 loginRequest.getPassword(),
                 authEntity.getPassword()))
-            .flatMap(authEntity -> this.generateToken(authEntity.getId()))
+            .flatMap(authEntity -> this.generateToken(authEntity.getUserId()))
             .switchIfEmpty(Mono.error(new IllegalArgumentException("Incorrect username or password")));
     }
 
@@ -56,6 +56,7 @@ public class AuthService {
                         .userId(userId)
                         .login(request.getEmail())
                         .password(passwordEncoder.encode(request.getPassword()))
+                        .role("user")
                         .build());
                 try {
                     customerRepository.save(
@@ -79,13 +80,12 @@ public class AuthService {
             .publishOn(Schedulers.boundedElastic())
             .flatMap(this::getTokenSubject)
             .map(UUID::fromString)
-            .filter(authRepository::existsById);
+            .filter(authRepository::existsByUserId);
     }
 
     protected Mono<String> generateToken(UUID id) {
         return Mono.just(
             Jwts.builder()
-                .id(UUID.randomUUID().toString())
                 .subject(id.toString())
                 .expiration(Date.from(Instant.now().plus(Duration.ofMinutes(authProperties.getExpirationMinutes()))))
                 .signWith(secretKey)

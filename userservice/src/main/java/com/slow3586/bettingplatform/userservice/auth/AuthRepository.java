@@ -9,5 +9,6 @@ import java.util.UUID;
 public interface AuthRepository extends CrudRepository<AuthEntity, UUID> {
     void deleteByUserId(UUID userId);
     AuthEntity findByLogin(String login);
+    boolean existsByUserId(UUID userId);
     boolean existsByLogin(String login);
 }

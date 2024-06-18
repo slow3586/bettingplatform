@@ -27,13 +27,14 @@ public class CustomerService {
 
     public Mono<CustomerDto> getPrivateByUser(UUID uuid) {
         return Mono.just(uuid)
-            .mapNotNull(customerRepository::findById)
+            .mapNotNull(customerRepository::findByUserId)
             .flatMap(Mono::justOrEmpty)
-            .map(customerMapper::toDto);
+            .map(customerMapper::toDto)
+            .switchIfEmpty(Mono.error(new RuntimeException("User not found")));
     }
 
     public Mono<CustomerDto> getPublicByUser(UUID uuid) {
-        return null;
+        return getPrivateByUser(uuid);
     }
 
     public Mono<UUID> getCurrentUserId() {

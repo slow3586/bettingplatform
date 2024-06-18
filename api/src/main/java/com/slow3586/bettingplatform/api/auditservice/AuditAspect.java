@@ -26,6 +26,8 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 import org.springframework.scheduling.annotation.Scheduled;
+import reactor.core.CorePublisher;
+import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -34,8 +36,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -51,10 +51,6 @@ public class AuditAspect {
     KafkaTemplate<String, Object> kafkaTemplate;
     @Value("${KAFKA_BROKERS:localhost:9091}")
     String kafkaBrokers;
-    @Value("trace.${spring.application.name}.${HOSTNAME:unknown}")
-    String traceTopic;
-    @Value("metric.${spring.application.name}.${HOSTNAME:unknown}")
-    String metricTopic;
 
     @PostConstruct
     public void postConstruct() {
@@ -70,8 +66,8 @@ public class AuditAspect {
             AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBrokers
         ))) {
             admin.createTopics(List.of(
-                    new NewTopic(traceTopic, 1, (short) 1),
-                    new NewTopic(metricTopic, 1, (short) 1)),
+                    new NewTopic("trace", 1, (short) 1),
+                    new NewTopic("metric", 1, (short) 1)),
                 new CreateTopicsOptions());
         }
     }
@@ -108,7 +104,7 @@ public class AuditAspect {
         } finally {
             final Instant end = Instant.now();
             kafkaTemplate.send(
-                traceTopic,
+                "trace",
                 traceInfo
                     .endTime(end)
                     .duration(Duration.between(start, end))
@@ -139,7 +135,7 @@ public class AuditAspect {
                 }));
 
         kafkaTemplate.send(
-            metricTopic,
+            "metric",
             MetricDto.builder()
                 .time(Instant.now())
                 .values(values)

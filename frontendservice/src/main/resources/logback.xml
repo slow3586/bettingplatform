@@ -14,11 +14,10 @@
         <topic>logs</topic>
         <keyingStrategy class="com.github.danielwegener.logback.kafka.keying.NoKeyKeyingStrategy" />
         <deliveryStrategy class="com.github.danielwegener.logback.kafka.delivery.AsynchronousDeliveryStrategy" />
-        <producerConfig>bootstrap.servers=${KAFKA_BROKERS}</producerConfig>
+        <producerConfig>bootstrap.servers=127.0.0.1:9091</producerConfig>
     </appender>
 
-    <root level="DEBUG">
-        <appender-ref ref="KAFKA" />
+    <root level="INFO">
         <appender-ref ref="STDOUT" />
     </root>
 </configuration>

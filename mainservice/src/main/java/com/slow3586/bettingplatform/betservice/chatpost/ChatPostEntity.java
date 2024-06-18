@@ -16,6 +16,7 @@ public class ChatPostEntity {
     UUID id;
     Instant createdAt;
     UUID userId;
+    String userName;
     int typeId;
     String status;
 }

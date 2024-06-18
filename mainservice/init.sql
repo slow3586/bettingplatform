@@ -36,6 +36,7 @@ CREATE TABLE chat_post
     id         uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
     created_at timestamp        default CURRENT_TIMESTAMP NOT NULL,
     user_id    uuid                                       NOT NULL,
+    user_name  varchar(1000)                              NOT NULL,
     type_id    integer                                    NOT NULL,
     status     varchar(1000)                              NOT NULL
 );

@@ -13,7 +13,7 @@
         <topic>logs</topic>
         <keyingStrategy class="com.github.danielwegener.logback.kafka.keying.NoKeyKeyingStrategy" />
         <deliveryStrategy class="com.github.danielwegener.logback.kafka.delivery.AsynchronousDeliveryStrategy" />
-        <producerConfig>bootstrap.servers=${KAFKA_BROKERS}</producerConfig>
+        <producerConfig>bootstrap.servers=${KAFKA_BROKERS:-localhost:9091}</producerConfig>
     </appender>
 
     <root level="INFO">

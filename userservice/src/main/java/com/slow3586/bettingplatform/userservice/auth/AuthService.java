@@ -87,7 +87,10 @@ public class AuthService {
         return Mono.just(
             Jwts.builder()
                 .subject(id.toString())
-                .expiration(Date.from(Instant.now().plus(Duration.ofMinutes(authProperties.getExpirationMinutes()))))
+                .expiration(Date.from(
+                    Instant.now().plus(
+                        Duration.ofMinutes(
+                            authProperties.getExpirationMinutes()))))
                 .signWith(secretKey)
                 .compact());
     }

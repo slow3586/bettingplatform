@@ -9,13 +9,19 @@ import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
+import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.web.reactive.config.EnableWebFlux;
 
-@EnableWebFlux
-@SpringBootApplication(exclude = RabbitAutoConfiguration.class)
+@SpringBootApplication
 @ConfigurationPropertiesScan
 @EnableConfigurationProperties
 @ComponentScan(value = {"com.slow3586.bettingplatform.*"})
+@EnableScheduling
+@EnableWebFlux
+@EnableWebFluxSecurity
+@EnableReactiveMethodSecurity
 @SecurityScheme(
     name = "BearerAuth",
     scheme = "bearer",

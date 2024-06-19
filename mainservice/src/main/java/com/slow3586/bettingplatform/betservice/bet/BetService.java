@@ -2,6 +2,7 @@ package com.slow3586.bettingplatform.betservice.bet;
 
 import com.slow3586.bettingplatform.api.SecurityUtils;
 import com.slow3586.bettingplatform.api.mainservice.BetDto;
+import com.slow3586.bettingplatform.api.mainservice.BetRequest;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -35,7 +36,13 @@ public class BetService {
             .toList();
     }
 
-    public UUID save(BetDto betDto) {
+    public UUID make(BetRequest betRequest) {
+        final BetDto dto = betMapper.toDto(betRequest);
+        dto.setUserId(SecurityUtils.getPrincipalId());
+        return this.save(dto);
+    }
+
+    protected UUID save(BetDto betDto) {
         final BetEntity save = betRepository.save(betMapper.toEntity(betDto));
         betKafkaProducer.send("bet", betMapper.toDto(save));
         return save.getId();

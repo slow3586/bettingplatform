@@ -1,6 +1,7 @@
 package com.slow3586.bettingplatform.betservice.chatpost;
 
 import com.slow3586.bettingplatform.api.mainservice.ChatPostDto;
+import com.slow3586.bettingplatform.api.mainservice.ChatPostRequest;
 import org.mapstruct.Mapper;
 import org.mapstruct.NullValueCheckStrategy;
 
@@ -9,4 +10,6 @@ public interface ChatPostMapper {
     ChatPostDto toDto(ChatPostEntity entity);
 
     ChatPostEntity toEntity(ChatPostDto dto);
+
+    ChatPostDto toDto(ChatPostRequest request);
 }

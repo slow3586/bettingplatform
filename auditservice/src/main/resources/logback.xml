@@ -33,7 +33,7 @@
     <logger name="KAFKA_TO_LOKI_LOGGER" level="INFO" additivity="false">
         <appender-ref ref="KAFKA_TO_LOKI_APPENDER" />
     </logger>
-    <root level="info">
+    <root level="INFO">
         <appender-ref ref="LOKI_APPENDER" />
         <appender-ref ref="STDOUT_APPENDER" />
     </root>

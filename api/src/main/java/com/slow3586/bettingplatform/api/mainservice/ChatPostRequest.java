@@ -14,9 +14,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ChatPostDto {
-    UUID id;
-    UUID userId;
+public class ChatPostRequest {
     int typeId;
-    Instant createdAt;
 }

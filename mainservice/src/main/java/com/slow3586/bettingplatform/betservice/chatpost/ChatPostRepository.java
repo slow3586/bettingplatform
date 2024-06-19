@@ -9,6 +9,6 @@ import java.util.UUID;
 
 @Repository
 public interface ChatPostRepository extends CrudRepository<ChatPostEntity, UUID> {
-    @Query("SELECT * from chat_post WHERE created_at ")
+    @Query("SELECT * from chat_post ORDER BY created_at DESC LIMIT 10")
     List<ChatPostEntity> findLatest();
 }

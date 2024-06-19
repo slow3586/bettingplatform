@@ -10,21 +10,15 @@ spring:
     default-property-inclusion: non_absent
 
 app:
-  websocket:
-    kafka-broker: 'localhost:9091'
-    rabbit-host: 'localhost:61613'
   client:
     main: 'localhost:8082'
     user: 'localhost:8083'
-
-kafka:
-  brokers: 'localhost:9091'
 
 management:
   endpoints:
     web:
       exposure:
-        include: health
+        include: health, prometheus
   endpoint:
     health:
       enabled: true

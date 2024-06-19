@@ -120,18 +120,18 @@ public class AuditAspect {
         meterRegistry.forEachMeter((m) ->
             StreamSupport.stream(m.measure().spliterator(), false)
                 .forEach(d -> {
-                    values.put
-                        (StringUtils.replace(m.getId().getName(), ".", "_")
-                                + "_" + m.getId().getBaseUnit()
-                                + (StringUtils.isNotBlank(d.getStatistic().getTagValueRepresentation())
-                                ? "_" + d.getStatistic().getTagValueRepresentation()
-                                : "")
-                                + m.getId()
-                                .getTags()
-                                .stream()
-                                .map(t -> t.getKey() + "=\"" + t.getValue() + "\"")
-                                .collect(Collectors.joining(",", "{", "}")),
-                            d.getValue());
+                    final String tags = m.getId()
+                        .getTags()
+                        .stream()
+                        .map(t -> t.getKey() + "=\"" + t.getValue() + "\"")
+                        .collect(Collectors.joining(","));
+                    final String type = d.getStatistic().getTagValueRepresentation();
+                    final String baseUnit = m.getId().getBaseUnit();
+                    final String key = m.getId().getName()
+                        + (StringUtils.isBlank(baseUnit) ? "" : "_" + baseUnit)
+                        + (StringUtils.isBlank(type) ? "" : "_" + type)
+                        + (StringUtils.isBlank(tags) ? "" : "{" + tags + "}");
+                    values.put(StringUtils.replace(key, ".", "_"), d.getValue());
                 }));
 
         kafkaTemplate.send(

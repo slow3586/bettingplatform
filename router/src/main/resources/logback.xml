@@ -9,7 +9,7 @@
 
     <appender name="KAFKA" class="com.github.danielwegener.logback.kafka.KafkaAppender">
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [websocket-service] [${HOSTNAME}] [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} [router] [${HOSTNAME}] [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
         <topic>logs</topic>
         <keyingStrategy class="com.github.danielwegener.logback.kafka.keying.NoKeyKeyingStrategy" />
@@ -18,7 +18,6 @@
     </appender>
 
     <root level="INFO">
-        <appender-ref ref="KAFKA" />
         <appender-ref ref="STDOUT" />
     </root>
 </configuration>

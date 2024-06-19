@@ -14,17 +14,10 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.context.WebSessionServerSecurityContextRepository;
 
 @Configuration
-@EnableWebFluxSecurity
-@EnableReactiveMethodSecurity
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public class UserServiceConfig {
     UserServiceSecurityWebFilter userServiceSecurityWebFilter;
-
-    @PostConstruct
-    public void postConstruct() {
-        //Hooks.onNextError((e) -> {});
-    }
 
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {

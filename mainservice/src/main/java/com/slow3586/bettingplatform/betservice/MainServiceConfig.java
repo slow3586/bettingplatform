@@ -1,12 +1,5 @@
 package com.slow3586.bettingplatform.betservice;
 
-import com.slow3586.bettingplatform.api.MongoUuidEntity;
-import com.slow3586.bettingplatform.api.auditservice.AuditDisabled;
-import com.slow3586.bettingplatform.api.auditservice.TraceDto;
-import com.slow3586.bettingplatform.api.mainservice.BetDto;
-import com.slow3586.bettingplatform.api.mainservice.ChatPostDto;
-import com.slow3586.bettingplatform.api.mainservice.GameDto;
-import com.slow3586.bettingplatform.api.mainservice.PriceDto;
 import jakarta.annotation.PostConstruct;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -23,25 +16,19 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.serializer.DelegatingByTopicSerializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
-import reactor.core.publisher.Mono;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-import java.util.regex.Pattern;
 
 @Configuration
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
-@AuditDisabled
 public class MainServiceConfig {
     @NonFinal
     @Value("${KAFKA_BROKERS:localhost:9091}")

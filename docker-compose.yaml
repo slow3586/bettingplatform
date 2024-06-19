@@ -1,5 +1,20 @@
 name: betting_platform
 services:
+  router:
+    build: ./router
+    environment:
+      - KAFKA_BROKERS=kafka-broker-0:9091
+      - management.zipkin.tracing.endpoint=http://zipkin:9411/api/v2/spans
+    ports:
+      - "8081:8080"
+    extra_hosts:
+      host.docker.internal: host-gateway
+    healthcheck:
+      test: "curl --fail --silent 127.0.0.1:8080/actuator/health | grep UP || exit 1"
+      interval: 2s
+      timeout: 2s
+      retries: 20
+
   user-service:
     build: ./userservice
     depends_on:
@@ -14,7 +29,7 @@ services:
       - KAFKA_BROKERS=kafka-broker-0:9091
       - management.zipkin.tracing.endpoint=http://zipkin:9411/api/v2/spans
     ports:
-      - "8081:8080"
+      - "8082:8080"
     healthcheck:
       test: "curl --fail --silent 127.0.0.1:8080/actuator/health | grep UP || exit 1"
       interval: 2s
@@ -47,7 +62,7 @@ services:
       main-service-db:
         condition: service_healthy
     ports:
-      - "8082:8080"
+      - "8083:8080"
     environment:
       - spring.datasource.url=jdbc:postgresql://main-service-db:5432/postgres
       - app.client.user=http://user-service:8080
@@ -89,11 +104,11 @@ services:
       zipkin:
         condition: service_started
     ports:
-      - "8083:8080"
+      - "8084:8080"
     environment:
       - spring.data.mongodb.uri=mongodb://audit-service-db:27017/db
       - management.zipkin.tracing.endpoint=http://zipkin:9411/api/v2/spans
-      - spring.data.mongodb.host=mongodb-router
+      - spring.data.mongodb.host=audit-service-db
       - spring.data.mongodb.port=27017
       - LOGBACK_LOKI_URL=http://loki:3100
       - KAFKA_BROKERS=kafka-broker-0:9091
@@ -111,14 +126,14 @@ services:
       - audit-service-db:127.0.0.1
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh 127.0.0.1:27017/test --quiet
-      interval: 2s
+      interval: 10s
       timeout: 2s
       retries: 20
 
   frontend-service:
     build: ./frontendservice
     ports:
-      - "8084:8080"
+      - "8085:8080"
     environment:
       - KAFKA_BROKERS=kafka-broker-0:9091
       - management.zipkin.tracing.endpoint=http://zipkin:9411/api/v2/spans
@@ -140,10 +155,9 @@ services:
       websocket-service-rabbitmq:
         condition: service_healthy
     ports:
-      - "8085:8080"
+      - "8086:8080"
     environment:
       - spring.rabbitmq.host=websocket-service-rabbitmq
-      - app.websocket.rabbit-host=websocket-service-rabbitmq
       - app.client.user=http://user-service:8080
       - app.client.main=http://main-service:8080
       - KAFKA_BROKERS=kafka-broker-0:9091
@@ -205,6 +219,7 @@ services:
 
   kafdrop:
     image: obsidiandynamics/kafdrop
+    restart: always
     ports:
       - "9000:9000"
     environment:
@@ -212,16 +227,21 @@ services:
 
   zipkin:
     image: openzipkin/zipkin:3.4
+    restart: always
     ports:
       - "9411:9411"
 
   loki:
     image: grafana/loki:2.9.2
+    restart: always
     ports:
       - "3100:3100"
     command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./loki-config.yaml:/etc/loki/local-config.yaml
 
   grafana:
     image: grafana/grafana:10.4.4
+    restart: always
     ports:
       - "3000:3000"

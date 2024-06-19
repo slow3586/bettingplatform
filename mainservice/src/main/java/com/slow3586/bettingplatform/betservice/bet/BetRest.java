@@ -1,6 +1,7 @@
 package com.slow3586.bettingplatform.betservice.bet;
 
 import com.slow3586.bettingplatform.api.mainservice.BetDto;
+import com.slow3586.bettingplatform.api.mainservice.BetRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.AccessLevel;
@@ -40,7 +41,7 @@ public class BetRest {
     @PostMapping
     @PreAuthorize("isAuthenticated()")
     @Operation(security = @SecurityRequirement(name = "BearerAuth"))
-    public UUID make(BetDto betDto) {
-        return betService.save(betDto);
+    public UUID make(BetRequest betRequest) {
+        return betService.make(betRequest);
     }
 }

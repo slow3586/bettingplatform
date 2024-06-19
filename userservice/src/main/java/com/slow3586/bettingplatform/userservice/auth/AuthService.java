@@ -49,6 +49,7 @@ public class AuthService {
         return Mono.just(registerRequest)
             .publishOn(Schedulers.boundedElastic())
             .filter(request -> !authRepository.existsByLogin(request.getEmail()))
+            .switchIfEmpty(Mono.error(new IllegalArgumentException("Email is already taken")))
             .handle((request, sink) -> {
                 final UUID userId = UUID.randomUUID();
                 authRepository.save(

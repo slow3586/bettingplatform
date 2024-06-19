@@ -9,10 +9,10 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 
 @EnableScheduling
@@ -24,6 +24,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 @EnableFeignClients(basePackages = "com.slow3586.bettingplatform.api.userservice")
 @ComponentScan(value = {"com.slow3586.bettingplatform.*"})
 @EnableWebSecurity
+@EnableMethodSecurity
 @SecurityScheme(
     name = "BearerAuth",
     scheme = "bearer",

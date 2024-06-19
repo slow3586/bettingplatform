@@ -18,6 +18,9 @@ spring:
     ansi:
       enabled: ALWAYS
 
+server:
+  port: 8085
+
 management:
   endpoints:
     web:

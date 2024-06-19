@@ -1,6 +1,7 @@
 package com.slow3586.bettingplatform.betservice.chatpost;
 
 import com.slow3586.bettingplatform.api.mainservice.ChatPostDto;
+import com.slow3586.bettingplatform.api.mainservice.ChatPostRequest;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -27,7 +28,7 @@ public class ChatPostRest {
 
     @PostMapping
     @PreAuthorize("isAuthenticated()")
-    public UUID make(ChatPostDto chatPostDto) {
-        return chatPostService.save(chatPostDto);
+    public UUID make(ChatPostRequest chatPostRequest) {
+        return chatPostService.make(chatPostRequest);
     }
 }

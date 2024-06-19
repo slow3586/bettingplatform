@@ -16,7 +16,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 @RequiredArgsConstructor
 @EnableWebSocketMessageBroker
-public class WebSocketMessageBrokerConfig implements WebSocketMessageBrokerConfigurer {
+public class WebSocketMessageBroker implements WebSocketMessageBrokerConfigurer {
     WebSocketInterceptor webSocketInterceptor;
     @NonFinal
     @Value("${spring.rabbitmq.host}")

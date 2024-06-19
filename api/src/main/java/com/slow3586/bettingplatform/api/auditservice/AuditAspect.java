@@ -26,8 +26,6 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 import org.springframework.scheduling.annotation.Scheduled;
-import reactor.core.CorePublisher;
-import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.time.Instant;

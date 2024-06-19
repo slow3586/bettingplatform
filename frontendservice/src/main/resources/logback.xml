@@ -7,16 +7,6 @@
         </encoder>
     </appender>
 
-    <appender name="KAFKA" class="com.github.danielwegener.logback.kafka.KafkaAppender">
-        <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [frontend-service] [${HOSTNAME}] [%thread] %-5level %logger{36} - %msg%n</pattern>
-        </encoder>
-        <topic>logs</topic>
-        <keyingStrategy class="com.github.danielwegener.logback.kafka.keying.NoKeyKeyingStrategy" />
-        <deliveryStrategy class="com.github.danielwegener.logback.kafka.delivery.AsynchronousDeliveryStrategy" />
-        <producerConfig>bootstrap.servers=127.0.0.1:9091</producerConfig>
-    </appender>
-
     <root level="INFO">
         <appender-ref ref="STDOUT" />
     </root>

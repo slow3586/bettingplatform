@@ -19,10 +19,10 @@ import java.util.UUID;
 public class ChatPostService {
     ChatPostMapper chatPostMapper;
     ChatPostRepository chatPostRepository;
-    KafkaTemplate<String, Object> kafkaProducer;
+    KafkaTemplate<String, Object> kafkaTemplate;
 
     public UUID make(ChatPostRequest chatPostRequest) {
-        return this.save(chatPostMapper.toDto(chatPostRequest));
+        return this.save(chatPostMapper.requestToDto(chatPostRequest));
     }
 
     public List<ChatPostDto> getLatest() {
@@ -34,7 +34,7 @@ public class ChatPostService {
 
     protected UUID save(ChatPostDto chatPostDto) {
         final ChatPostEntity save = chatPostRepository.save(chatPostMapper.toEntity(chatPostDto));
-        kafkaProducer.send("chat_post",
+        kafkaTemplate.send("chat_post",
             String.valueOf(save.getId()),
             chatPostMapper.toDto(save));
         return save.getId();

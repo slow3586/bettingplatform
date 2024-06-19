@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
 public class PriceService {
     PriceProperties priceProperties;
     WebClient webClient;
-    KafkaTemplate<String, Object> priceKafkaProducer;
+    KafkaTemplate<String, Object> kafkaTemplate;
     PriceRepository priceRepository;
     PriceMapper priceMapper;
     Pattern pricePattern;
@@ -38,7 +38,7 @@ public class PriceService {
 
     public void save(final PriceDto priceDto) {
         final PriceEntity price = priceRepository.save(priceMapper.toEntity(priceDto));
-        priceKafkaProducer.send("price", priceMapper.toDto(price));
+        kafkaTemplate.send("price", priceMapper.toDto(price));
     }
 
     @Async

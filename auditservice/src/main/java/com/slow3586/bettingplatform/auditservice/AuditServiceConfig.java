@@ -1,6 +1,6 @@
 package com.slow3586.bettingplatform.auditservice;
 
-import com.slow3586.bettingplatform.api.MongoUuidEntity;
+import com.slow3586.bettingplatform.api.IMongoUuidEntity;
 import jakarta.annotation.PostConstruct;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -13,16 +13,12 @@ import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.mapping.event.BeforeConvertCallback;
-import org.springframework.data.mongodb.core.mapping.event.ReactiveBeforeConvertCallback;
 import org.springframework.kafka.annotation.KafkaStreamsDefaultConfiguration;
 import org.springframework.kafka.config.KafkaStreamsConfiguration;
-import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 import java.util.List;
@@ -63,7 +59,7 @@ public class AuditServiceConfig {
     }
 
     @Bean
-    public BeforeConvertCallback<MongoUuidEntity> beforeSaveCallback() {
+    public BeforeConvertCallback<IMongoUuidEntity> beforeSaveCallback() {
         return (entity, collection) -> {
             if (entity.getId() == null) {
                 entity.setId(UUID.randomUUID());

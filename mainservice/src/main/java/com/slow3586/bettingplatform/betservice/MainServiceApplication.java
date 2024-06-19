@@ -30,8 +30,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
     scheme = "bearer",
     bearerFormat = "JWT",
     type = SecuritySchemeType.HTTP,
-    in = SecuritySchemeIn.HEADER
-)
+    in = SecuritySchemeIn.HEADER)
 public class MainServiceApplication {
 
     public static void main(String[] args) {

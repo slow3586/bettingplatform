@@ -1,10 +1,10 @@
 package com.slow3586.bettingplatform.betservice.game;
 
+import com.slow3586.bettingplatform.api.DefaultMapStructConfig;
 import com.slow3586.bettingplatform.api.mainservice.GameChoiceDto;
 import org.mapstruct.Mapper;
-import org.mapstruct.NullValueCheckStrategy;
 
-@Mapper(componentModel = "spring", nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
+@Mapper(config = DefaultMapStructConfig.class)
 public interface GameChoiceMapper {
     GameChoiceDto toDto(GameChoiceEntity entity);
 

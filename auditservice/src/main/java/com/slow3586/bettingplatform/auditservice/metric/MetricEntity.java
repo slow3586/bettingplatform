@@ -1,6 +1,6 @@
 package com.slow3586.bettingplatform.auditservice.metric;
 
-import com.slow3586.bettingplatform.api.MongoUuidEntity;
+import com.slow3586.bettingplatform.api.IMongoUuidEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,7 +17,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document("metric")
-public class MetricEntity implements MongoUuidEntity {
+public class MetricEntity implements IMongoUuidEntity {
     @Id
     UUID id;
     Instant time;

@@ -8,7 +8,6 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
@@ -29,13 +28,11 @@ public class WebSocketKafkaRouting {
     }
 
     @KafkaListener(topics = "game")
-    @SendTo("/topic/game")
     public void game(GameDto dto) {
         messagingTemplate.convertAndSend("/topic/game", dto);
     }
 
     @KafkaListener(topics = "chat_post")
-    @SendTo("/topic/chat_post")
     public void chat(ChatPostDto dto) {
         messagingTemplate.convertAndSend("/topic/chat_post", dto);
     }

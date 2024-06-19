@@ -5,6 +5,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
@@ -20,6 +21,7 @@ import java.util.UUID;
 public class CustomerService {
     CustomerRepository customerRepository;
     CustomerMapper customerMapper;
+    KafkaTemplate<String, Object> kafkaTemplate;
 
     public Mono<CustomerDto> getByCurrentUser() {
         return this.getCurrentUserId().flatMap(this::getPrivateByUser);

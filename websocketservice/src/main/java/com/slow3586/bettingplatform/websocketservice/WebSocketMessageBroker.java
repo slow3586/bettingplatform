@@ -30,9 +30,7 @@ public class WebSocketMessageBroker implements WebSocketMessageBrokerConfigurer 
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.setApplicationDestinationPrefixes("/app")
-            .setUserDestinationPrefix("/auth")
-            .enableStompBrokerRelay("/queue", "/topic")
+        config.enableStompBrokerRelay("/queue", "/topic")
             .setRelayHost(rabbitHost)
             .setRelayPort(61613)
             .setClientLogin(rabbitUsername)

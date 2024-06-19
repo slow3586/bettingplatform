@@ -1,6 +1,6 @@
 package com.slow3586.bettingplatform.auditservice.trace;
 
-import com.slow3586.bettingplatform.api.MongoUuidEntity;
+import com.slow3586.bettingplatform.api.IMongoUuidEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,7 +16,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document("trace")
-public class TraceEntity implements MongoUuidEntity {
+public class TraceEntity implements IMongoUuidEntity {
     @Id
     UUID id;
     Instant time;

@@ -1,6 +1,5 @@
 package com.slow3586.bettingplatform.websocketservice;
 
-import com.slow3586.bettingplatform.api.auditservice.TraceDto;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -15,10 +14,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
-import org.springframework.kafka.support.serializer.JsonSerde;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.simp.SimpMessageType;
+import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.messaging.access.intercept.MessageMatcherDelegatingAuthorizationManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 
@@ -46,6 +48,15 @@ public class WebSocketConfig {
     @Bean
     public MessageConverter converter() {
         return new Jackson2JsonMessageConverter();
+    }
+
+    @Bean
+    public AuthorizationManager<Message<?>> messageAuthorizationManager(
+        MessageMatcherDelegatingAuthorizationManager.Builder messages
+    ) {
+        return messages
+            .simpTypeMatchers(SimpMessageType.MESSAGE).denyAll()
+            .build();
     }
 
     @Bean

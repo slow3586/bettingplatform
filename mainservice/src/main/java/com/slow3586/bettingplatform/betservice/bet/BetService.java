@@ -3,10 +3,12 @@ package com.slow3586.bettingplatform.betservice.bet;
 import com.slow3586.bettingplatform.api.SecurityUtils;
 import com.slow3586.bettingplatform.api.mainservice.BetDto;
 import com.slow3586.bettingplatform.api.mainservice.BetRequest;
+import com.slow3586.bettingplatform.api.mainservice.GameDto;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +21,7 @@ import java.util.UUID;
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public class BetService {
     BetRepository betRepository;
-    KafkaTemplate<String, Object> betKafkaProducer;
+    KafkaTemplate<String, Object> kafkaTemplate;
     BetMapper betMapper;
 
     public List<BetDto> getByCurrentUser() {
@@ -37,15 +39,18 @@ public class BetService {
     }
 
     public UUID make(BetRequest betRequest) {
-        final BetDto dto = betMapper.toDto(betRequest);
+        final BetDto dto = betMapper.requestToDto(betRequest);
         dto.setUserId(SecurityUtils.getPrincipalId());
         return this.save(dto);
     }
 
     protected UUID save(BetDto betDto) {
         final BetEntity save = betRepository.save(betMapper.toEntity(betDto));
-        betKafkaProducer.send("bet", betMapper.toDto(save));
+        kafkaTemplate.send("bet", betMapper.toDto(save));
         return save.getId();
     }
 
+    @KafkaListener(topics = "game")
+    protected void gameListener(GameDto gameDto) {
+    }
 }

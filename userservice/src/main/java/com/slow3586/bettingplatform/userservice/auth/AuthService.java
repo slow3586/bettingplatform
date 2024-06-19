@@ -6,8 +6,6 @@ import com.slow3586.bettingplatform.userservice.customer.CustomerEntity;
 import com.slow3586.bettingplatform.userservice.customer.CustomerRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;

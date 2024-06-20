@@ -31,7 +31,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public class WebSocketConfig {
-    private static final String GROUP_ID = "websocket";
+    static String GROUP_ID = "websocket-service";
     @NonFinal
     @Value("${spring.rabbitmq.host}")
     String rabbitHost;

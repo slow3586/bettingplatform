@@ -1,6 +1,5 @@
 package com.slow3586.bettingplatform.auditservice;
 
-import com.slow3586.bettingplatform.api.IMongoUuidEntity;
 import jakarta.annotation.PostConstruct;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -16,14 +15,12 @@ import org.apache.kafka.streams.processor.WallclockTimestampExtractor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.mongodb.core.mapping.event.BeforeConvertCallback;
 import org.springframework.kafka.annotation.KafkaStreamsDefaultConfiguration;
 import org.springframework.kafka.config.KafkaStreamsConfiguration;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 @Configuration
 @RequiredArgsConstructor
@@ -56,15 +53,5 @@ public class AuditServiceConfig {
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         props.put(StreamsConfig.DEFAULT_TIMESTAMP_EXTRACTOR_CLASS_CONFIG, WallclockTimestampExtractor.class.getName());
         return new KafkaStreamsConfiguration(props);
-    }
-
-    @Bean
-    public BeforeConvertCallback<IMongoUuidEntity> beforeSaveCallback() {
-        return (entity, collection) -> {
-            if (entity.getId() == null) {
-                entity.setId(UUID.randomUUID());
-            }
-            return entity;
-        };
     }
 }

@@ -9,13 +9,18 @@ import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.CreateTopicsOptions;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -70,5 +75,24 @@ public class MainServiceConfig {
                 ),
                 new StringSerializer(),
                 new JsonSerializer<>()));
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory() {
+        JsonDeserializer<Object> jsonDeserializer = new JsonDeserializer<>();
+        jsonDeserializer.addTrustedPackages("*");
+
+        ConcurrentKafkaListenerContainerFactory<String, Object> factory =
+            new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConcurrency(4);
+        factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(
+            Map.of(
+                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBrokers,
+                ConsumerConfig.GROUP_ID_CONFIG, "main-service",
+                ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class
+            ),
+            new StringDeserializer(),
+            jsonDeserializer));
+        return factory;
     }
 }

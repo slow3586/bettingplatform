@@ -1,13 +1,13 @@
 package com.slow3586.bettingplatform.auditservice.trace;
 
-import com.slow3586.bettingplatform.api.IMongoUuidEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.elasticsearch.annotations.Document;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -15,16 +15,15 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Document("trace")
-public class TraceEntity implements IMongoUuidEntity {
+@Document(indexName = "trace")
+public class TraceEntity {
     @Id
     UUID id;
-    Instant time;
-    String serviceName;
-    String hostName;
+    Instant startTime;
+    Instant endTime;
+    Duration duration;
     String spanId;
     String traceId;
-    String eventId;
     String methodClass;
     String methodName;
     String methodArgs;

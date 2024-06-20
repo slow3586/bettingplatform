@@ -2,6 +2,7 @@ package com.slow3586.bettingplatform.auditservice.trace;
 
 import com.slow3586.bettingplatform.api.auditservice.MetricDto;
 import com.slow3586.bettingplatform.api.auditservice.TraceDto;
+import com.slow3586.bettingplatform.auditservice.metric.MetricEntity;
 import com.slow3586.bettingplatform.auditservice.metric.MetricMapper;
 import com.slow3586.bettingplatform.auditservice.metric.MetricRepository;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -13,23 +14,21 @@ import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.support.serializer.JsonSerde;
+
+import java.time.Instant;
 
 @Configuration
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 @Slf4j
 public class TraceService {
-    Logger kafkaToLokiLogger = LoggerFactory.getLogger("KAFKA_TO_LOKI_LOGGER");
     TraceRepository traceRepository;
     TraceMapper traceMapper;
     MetricRepository metricRepository;
     MetricMapper metricMapper;
-
     MeterRegistry meterRegistry;
 
     @Bean
@@ -60,21 +59,8 @@ public class TraceService {
                 Serdes.String(),
                 valueSerde));
 
-        stream.foreach((String k, MetricDto v) ->
-            metricRepository.save(metricMapper.toEntity(v)));
-
-        return stream;
-    }
-
-    @Bean
-    public KStream<String, String> logStream(StreamsBuilder streamsBuilder) {
-        final KStream<String, String> stream = streamsBuilder.stream(
-            "logs",
-            Consumed.with(
-                Serdes.String(),
-                Serdes.String()));
-
-        stream.foreach((String k, String v) -> kafkaToLokiLogger.info(v));
+        stream.foreach((String key, MetricDto dto) ->
+            metricRepository.save(metricMapper.toEntity(dto)));
 
         return stream;
     }

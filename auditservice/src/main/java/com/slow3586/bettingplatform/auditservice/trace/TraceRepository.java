@@ -1,10 +1,10 @@
 package com.slow3586.bettingplatform.auditservice.trace;
 
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.UUID;
 
 @Repository
-public interface TraceRepository extends MongoRepository<TraceEntity, UUID> {
+public interface TraceRepository extends ElasticsearchRepository<TraceEntity, UUID> {
 }

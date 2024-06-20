@@ -4,14 +4,14 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
+import org.springframework.data.elasticsearch.repository.config.EnableElasticsearchRepositories;
 import org.springframework.kafka.annotation.EnableKafkaStreams;
 
 @SpringBootApplication
 @ConfigurationPropertiesScan
 @EnableConfigurationProperties
 @EnableKafkaStreams
-@EnableMongoRepositories
+@EnableElasticsearchRepositories
 public class AuditServiceApplication {
 
     public static void main(String[] args) {

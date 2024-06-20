@@ -6,10 +6,9 @@ spring:
       name: "admin"
       password: "admin"
   data:
-    mongodb:
-      host: localhost
-      port: 27017
-      uuid-representation: standard
+    elasticsearch:
+      repositories:
+        enabled: true
   jackson:
     default-property-inclusion: non_absent
 

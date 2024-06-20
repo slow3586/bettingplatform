@@ -54,6 +54,7 @@ public class AuthService {
                     AuthEntity.builder()
                         .userId(userId)
                         .login(request.getEmail())
+                        .email(registerRequest.getEmail())
                         .password(passwordEncoder.encode(request.getPassword()))
                         .role("user")
                         .build());
@@ -61,7 +62,6 @@ public class AuthService {
                     customerRepository.save(
                         CustomerEntity.builder()
                             .userId(userId)
-                            .email(registerRequest.getEmail())
                             .name("name")
                             .balance(0)
                             .build());

@@ -15,8 +15,15 @@ import org.apache.kafka.streams.processor.WallclockTimestampExtractor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.elasticsearch.client.ClientConfiguration;
+import org.springframework.data.elasticsearch.client.elc.ReactiveElasticsearchConfiguration;
 import org.springframework.kafka.annotation.KafkaStreamsDefaultConfiguration;
 import org.springframework.kafka.config.KafkaStreamsConfiguration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.web.DefaultSecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 
 import java.util.HashMap;
 import java.util.List;
@@ -24,11 +31,12 @@ import java.util.Map;
 
 @Configuration
 @RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
-public class AuditServiceConfig {
-    @NonFinal
+@FieldDefaults(level = AccessLevel.PROTECTED)
+public class AuditServiceConfig extends ReactiveElasticsearchConfiguration {
     @Value("${KAFKA_BROKERS:localhost:9091}")
     String kafkaBrokers;
+    @Value("${ELASTIC_PATH:localhost:9200}")
+    String elasticPath;
 
     @PostConstruct
     public void postConstruct() {
@@ -53,5 +61,23 @@ public class AuditServiceConfig {
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
         props.put(StreamsConfig.DEFAULT_TIMESTAMP_EXTRACTOR_CLASS_CONFIG, WallclockTimestampExtractor.class.getName());
         return new KafkaStreamsConfiguration(props);
+    }
+
+    @Bean
+    public DefaultSecurityFilterChain securityWebFilterChain(HttpSecurity http) throws Exception {
+        return http.csrf(AbstractHttpConfigurer::disable)
+            .cors(AbstractHttpConfigurer::disable)
+            .formLogin(AbstractHttpConfigurer::disable)
+            .httpBasic(AbstractHttpConfigurer::disable)
+            .securityContext(c -> c.securityContextRepository(
+                new HttpSessionSecurityContextRepository()))
+            .build();
+    }
+
+    @Override
+    public ClientConfiguration clientConfiguration() {
+        return ClientConfiguration.builder()
+            .connectedTo(elasticPath)
+            .build();
     }
 }

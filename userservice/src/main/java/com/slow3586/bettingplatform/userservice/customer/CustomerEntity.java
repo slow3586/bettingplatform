@@ -15,6 +15,5 @@ public class CustomerEntity {
     UUID id;
     UUID userId;
     String name;
-    String email;
     double balance;
 }

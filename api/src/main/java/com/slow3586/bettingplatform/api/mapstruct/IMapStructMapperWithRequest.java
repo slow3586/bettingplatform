@@ -1,4 +1,4 @@
-package com.slow3586.bettingplatform.api;
+package com.slow3586.bettingplatform.api.mapstruct;
 
 public interface IMapStructMapperWithRequest<DTO, ENT, REQ> {
     DTO toDto(ENT entity);

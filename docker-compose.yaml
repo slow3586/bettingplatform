@@ -107,13 +107,17 @@ services:
     depends_on:
       kafka-broker-0:
         condition: service_healthy
-      audit-service-db:
-        condition: service_healthy
+      prometheus:
+        condition: service_started
       grafana:
         condition: service_started
       zipkin:
         condition: service_started
       logstash:
+        condition: service_started
+      kibana:
+        condition: service_started
+      kafdrop:
         condition: service_started
     ports:
       - "8084:8080"
@@ -127,19 +131,6 @@ services:
     healthcheck:
       test: "curl --fail --silent 127.0.0.1:8080/actuator/health | grep UP || exit 1"
       interval: 2s
-      timeout: 2s
-      retries: 20
-
-  audit-service-db:
-    image: mongo:7.0.8
-    logging: *logging
-    ports:
-      - "27017:27017"
-    extra_hosts:
-      - audit-service-db:127.0.0.1
-    healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh 127.0.0.1:27017/test --quiet
-      interval: 10s
       timeout: 2s
       retries: 20
 
@@ -243,6 +234,15 @@ services:
       - "9000:9000"
     environment:
       KAFKA_BROKERCONNECT: "kafka-broker-0:9090"
+
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    logging: *logging
+    restart: always
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9089:9090"
 
   zipkin:
     image: openzipkin/zipkin:3.4

@@ -37,8 +37,12 @@ public class CustomerRest {
     }
 
     @GetMapping("/public/{uuid}")
-    @Operation(security = @SecurityRequirement(name = "BearerAuth"))
     public Mono<CustomerDto> getPublicByUser(@PathVariable("uuid") UUID uuid) {
         return customerService.getPublicByUser(uuid);
+    }
+
+    @Operation(security = @SecurityRequirement(name = "BearerAuth"))
+    public void buyPremium(){
+
     }
 }

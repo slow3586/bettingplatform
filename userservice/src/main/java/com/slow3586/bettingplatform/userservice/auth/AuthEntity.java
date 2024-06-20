@@ -17,6 +17,7 @@ public class AuthEntity {
     UUID userId;
     String login;
     String role;
+    String email;
     @ToString.Exclude
     String password;
 }

@@ -16,6 +16,7 @@ import java.util.UUID;
 public class AuthDto {
     UUID userId;
     String login;
+    String email;
     String password;
     String role;
 }

@@ -20,13 +20,43 @@ spec:
             - containerPort: 9200
               name: http
           volumeMounts:
-            - name: data
-              mountPath: /usr/share/elasticsearch/data
+            - name: prometheus-volume
+              mountPath: /prometheus
   volumeClaimTemplates:
     - metadata:
-        name: data
+        name: prometheus-volume
       spec:
-        accessModes: ["ReadWriteOnce"]
+        storageClassName: prometheus-volume-class
+        accessModes: [ "ReadWriteMany" ]
         resources:
           requests:
-            storage: 10Gi
+            storage: 1Gi
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: prometheus-volume
+spec:
+  storageClassName: prometheus-volume-class
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/mnt/bettingplatform/prometheus"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-service
+  labels:
+    app: prometheus
+spec:
+  type: NodePort
+  selector:
+    app: prometheus
+  ports:
+    - protocol: TCP
+      port: 9200
+      targetPort: 9200
+      name: web

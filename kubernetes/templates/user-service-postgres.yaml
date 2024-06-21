@@ -41,6 +41,7 @@ spec:
     - metadata:
         name: data
       spec:
+        storageClassName: user-service-postgres-volume-class
         accessModes: [ "ReadWriteMany" ]
         resources:
           requests:
@@ -62,15 +63,15 @@ spec:
 kind: PersistentVolume
 apiVersion: v1
 metadata:
-  name: user-service-postgres-container-vol
+  name: user-service-postgres-volume
 spec:
-  storageClassName: manual
+  storageClassName: user-service-postgres-volume-class
   capacity:
     storage: 1Gi
   accessModes:
     - ReadWriteMany
   hostPath:
-    path: "/mnt/data/main_service_postgres"
+    path: "/mnt/bettingplatform/user_service_postgres"
 ---
 apiVersion: v1
 kind: ConfigMap

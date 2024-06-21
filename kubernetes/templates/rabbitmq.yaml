@@ -17,11 +17,15 @@ spec:
         - name: rabbitmq-container
           image: rabbitmq:3.13.1-management-alpine
           ports:
-            - containerPort: 9091
-              name: http
+            - containerPort: 5672
+              name: port0
+            - containerPort: 61613
+              name: port1
           volumeMounts:
             - name: config-volume
               mountPath: /etc/rabbitmq
+            - name: rabbitmq-volume
+              mountPath: /var/lib/rabbitmq
       volumes:
         - name: config-volume
           configMap:
@@ -33,7 +37,8 @@ spec:
     - metadata:
         name: data
       spec:
-        accessModes: ["ReadWriteOnce"]
+        storageClassName: rabbitmq-volume-class
+        accessModes: ["ReadWriteMany"]
         resources:
           requests:
             storage: 1Gi
@@ -45,3 +50,36 @@ metadata:
 data:
   enabled_plugins: |
     [rabbitmq_management,rabbitmq_stomp]
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: rabbitmq-volume
+spec:
+  storageClassName: rabbitmq-volume-class
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/mnt/bettingplatform/rabbitmq"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq-service
+  labels:
+    app: rabbitmq
+spec:
+  type: NodePort
+  selector:
+    app: rabbitmq
+  ports:
+    - name: port0
+      protocol: TCP
+      port: 5672
+      targetPort: 5672
+    - name: port1
+      protocol: TCP
+      port: 61613
+      targetPort: 61613

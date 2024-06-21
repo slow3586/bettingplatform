@@ -20,13 +20,43 @@ spec:
             - containerPort: 9200
               name: http
           volumeMounts:
-            - name: data
+            - name: elasticsearch-volume
               mountPath: /usr/share/elasticsearch/data
   volumeClaimTemplates:
     - metadata:
-        name: data
+        name: elasticsearch-volume
       spec:
-        accessModes: ["ReadWriteOnce"]
+        storageClassName:  elasticsearch-volume-class
+        accessModes: [ "ReadWriteMany" ]
         resources:
           requests:
             storage: 1Gi
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: elasticsearch-volume
+spec:
+  storageClassName: elasticsearch-volume-class
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/mnt/bettingplatform/elasticsearch"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch-service
+  labels:
+    app: elasticsearch
+spec:
+  type: NodePort
+  selector:
+    app: elasticsearch
+  ports:
+    - protocol: TCP
+      port: 9200
+      targetPort: 9200
+      name: web

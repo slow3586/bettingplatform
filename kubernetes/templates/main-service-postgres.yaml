@@ -29,7 +29,7 @@ spec:
           ports:
             - containerPort: 5432
           volumeMounts:
-            - name: main-service-postgres-container-vol
+            - name: main-service-postgres-volume
               mountPath: /var/lib/postgresql/data
             - name: main-service-postgres-configmap-init-vol
               mountPath: /docker-entrypoint-initdb.d
@@ -39,8 +39,9 @@ spec:
             name: main-service-postgres-configmap-init
   volumeClaimTemplates:
     - metadata:
-        name: data
+        name: main-service-postgres-volume
       spec:
+        storageClassName: main-service-postgres-volume-class
         accessModes: [ "ReadWriteMany" ]
         resources:
           requests:
@@ -62,15 +63,15 @@ spec:
 kind: PersistentVolume
 apiVersion: v1
 metadata:
-  name: main-service-postgres-container-vol
+  name: main-service-postgres-volume
 spec:
-  storageClassName: manual
+  storageClassName: main-service-postgres-volume-class
   capacity:
     storage: 1Gi
   accessModes:
     - ReadWriteMany
   hostPath:
-    path: "/mnt/data/main_service_postgres"
+    path: "/mnt/bettingplatform/main_service_postgres"
 ---
 apiVersion: v1
 kind: ConfigMap

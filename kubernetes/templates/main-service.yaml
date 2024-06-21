@@ -21,12 +21,12 @@ spec:
       containers:
         - name: main-service-container
           image: slow3586/betting-platform:main-service-0.0.1
-          imagePullPolicy: Always
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
           env:
             - name: management.zipkin.tracing.endpoint
-              value: http://zipkin:9411/api/v2/spans
+              value: http://zipkin-service:9411/api/v2/spans
             - name: spring.datasource.url
-              value: jdbc:postgresql://main-service-postgres:5432/postgres
+              value: jdbc:postgresql://main-service-postgres-service:5432/postgres
           ports:
             - containerPort: 8080
           readinessProbe:

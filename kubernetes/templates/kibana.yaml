@@ -24,19 +24,17 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             - name: ELASTICSEARCH_HOSTS
-              value: http://elasticsearch:9200
+              value: http://elasticsearch-service:9200
           ports:
-            - name: http
-              containerPort: 9000
-              protocol: TCP
+            - containerPort: 5601
           readinessProbe:
             httpGet:
-              path: /actuator/health
-              port: http
+              path: /
+              port: 5601
           livenessProbe:
             httpGet:
-              path: /actuator/health
-              port: http
+              path: /
+              port: 5601
 ---
 apiVersion: v1
 kind: Service
@@ -49,7 +47,6 @@ spec:
   selector:
     app: kibana
   ports:
-    - name: http
-      port: 9000
-      targetPort: 9000
+    - port: 5601
+      targetPort: 5601
       protocol: TCP

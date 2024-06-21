@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: user-service-postgres-deployment
+spec:
+  serviceName: user-service-postgres-service
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-service-postgres
+  template:
+    metadata:
+      labels:
+        app: user-service-postgres
+    spec:
+      containers:
+        - name: user-service-postgres-container
+          image: 'postgres:14'
+          resources:
+            limits:
+              memory: "1G"
+              cpu: "1"
+            requests:
+              memory: "1G"
+              cpu: "1"
+          envFrom:
+            - secretRef:
+                name: user-service-postgres-secret
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: user-service-postgres-container-vol
+              mountPath: /var/lib/postgresql/data
+            - name: user-service-postgres-configmap-init-vol
+              mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: user-service-postgres-configmap-init-vol
+          configMap:
+            name: user-service-postgres-configmap-init
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ "ReadWriteMany" ]
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service-postgres-service
+spec:
+  type: NodePort
+  selector:
+    app: user-service-postgres
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: user-service-postgres-container-vol
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/mnt/data/main_service_postgres"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-service-postgres-configmap-init
+data:
+  01_init_db.sql: |-
+    CREATE TABLE IF NOT EXISTS users
+    (
+        id         bigserial PRIMARY KEY,
+        username   character varying(1000) NOT NULL,
+        password   character varying(1000) NOT NULL,
+        first_name character varying(1000) NOT NULL,
+        last_name  character varying(1000) NOT NULL,
+        email      character varying(1000),
+        phone      character varying(1000)
+    );

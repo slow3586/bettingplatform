@@ -6,8 +6,8 @@ x-logging: &logging
     gelf-address: "udp://host.docker.internal:12201"
 
 services:
-  router:
-    build: ./router
+  router-service:
+    build: ./routerservice
     logging: *logging
     environment:
       - KAFKA_BROKERS=kafka-broker-0:9091
@@ -17,7 +17,7 @@ services:
     extra_hosts:
       host.docker.internal: host-gateway
     healthcheck:
-      test: "curl --fail --silent 127.0.0.1:8080/actuator/health | grep UP || exit 1"
+      test: "wget --no-verbose --tries=1 --spider 127.0.0.1:8080/actuator/health || exit 1"
       interval: 2s
       timeout: 2s
       retries: 20
@@ -39,7 +39,7 @@ services:
     ports:
       - "8082:8080"
     healthcheck:
-      test: "curl --fail --silent 127.0.0.1:8080/actuator/health | grep UP || exit 1"
+      test: "wget --no-verbose --tries=1 --spider 127.0.0.1:8080/actuator/health || exit 1"
       interval: 2s
       timeout: 2s
       retries: 20
@@ -79,7 +79,7 @@ services:
       - KAFKA_BROKERS=kafka-broker-0:9091
       - management.zipkin.tracing.endpoint=http://zipkin:9411/api/v2/spans
     healthcheck:
-      test: "curl --fail --silent 127.0.0.1:8080/actuator/health | grep UP || exit 1"
+      test: "wget --no-verbose --tries=1 --spider 127.0.0.1:8080/actuator/health || exit 1"
       interval: 2s
       timeout: 2s
       retries: 20
@@ -129,7 +129,7 @@ services:
       - KAFKA_BROKERS=kafka-broker-0:9091
       - ELASTIC_PATH=elasticsearch:9200
     healthcheck:
-      test: "curl --fail --silent 127.0.0.1:8080/actuator/health | grep UP || exit 1"
+      test: "wget --no-verbose --tries=1 --spider 127.0.0.1:8080/actuator/health || exit 1"
       interval: 2s
       timeout: 2s
       retries: 20
@@ -143,7 +143,7 @@ services:
       - KAFKA_BROKERS=kafka-broker-0:9091
       - management.zipkin.tracing.endpoint=http://zipkin:9411/api/v2/spans
     healthcheck:
-      test: "curl --fail --silent 127.0.0.1:8080/actuator/health | grep UP || exit 1"
+      test: "wget --no-verbose --tries=1 --spider 127.0.0.1:8080/actuator/health || exit 1"
       interval: 2s
       timeout: 2s
       retries: 20
@@ -169,7 +169,7 @@ services:
       - KAFKA_BROKERS=kafka-broker-0:9091
       - management.zipkin.tracing.endpoint=http://zipkin:9411/api/v2/spans
     healthcheck:
-      test: "curl --fail --silent 127.0.0.1:8080/actuator/health | grep UP || exit 1"
+      test: "wget --no-verbose --tries=1 --spider 127.0.0.1:8080/actuator/health || exit 1"
       interval: 2s
       timeout: 2s
       retries: 20
@@ -227,7 +227,7 @@ services:
       retries: 20
 
   kafdrop:
-    image: obsidiandynamics/kafdrop
+    image: obsidiandynamics/kafdrop:4.0.1
     logging: *logging
     restart: always
     ports:

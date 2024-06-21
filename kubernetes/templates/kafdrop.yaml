@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafdrop-deployment
+spec:
+  replicas: 1
+  minReadySeconds: 10
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: kafdrop
+  template:
+    metadata:
+      labels:
+        app: kafdrop
+    spec:
+      containers:
+        - name: kafdrop-container
+          image: obsidiandynamics/kafdrop:4.0.1
+          imagePullPolicy: IfNotPresent
+          #env:
+          ports:
+            - name: http
+              containerPort: 9000
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafdrop-service
+  labels:
+    app: kafdrop
+spec:
+  type: NodePort
+  selector:
+    app: kafdrop
+  ports:
+    - name: http
+      port: 9000
+      targetPort: 9000
+      protocol: TCP

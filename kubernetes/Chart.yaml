@@ -1,0 +1,8 @@
+apiVersion: v2
+name: betting-platform-app
+maintainers:
+  - name: slow3586
+description: betting-platform-app
+type: application
+version: 1.0.0
+appVersion: "1.0.0"

@@ -1,6 +1,6 @@
 spring:
   application:
-    name: 'router'
+    name: 'router-service'
   cloud:
     gateway:
       routes:

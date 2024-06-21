@@ -11,9 +11,9 @@ import org.springframework.web.reactive.config.EnableWebFlux;
 @SpringBootApplication
 @EnableWebFlux
 @EnableWebFluxSecurity
-public class RouterApplication {
+public class RouterServiceApplication {
     public static void main(String[] args) {
-        SpringApplication.run(RouterApplication.class, args);
+        SpringApplication.run(RouterServiceApplication.class, args);
     }
 
     @Bean

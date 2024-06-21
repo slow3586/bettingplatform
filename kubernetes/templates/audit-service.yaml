@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: audit-service-deployment
+spec:
+  replicas: 1
+  minReadySeconds: 10
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: audit-service
+  template:
+    metadata:
+      labels:
+        app: audit-service
+    spec:
+      containers:
+        - name: audit-service-container
+          image: slow3586/betting-platform:audit-service-0.0.1
+          imagePullPolicy: Always
+          env:
+            - name: management.zipkin.tracing.endpoint
+              value: http://zipkin:9411/api/v2/spans
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: audit-service-service
+  labels:
+    app: audit-service
+spec:
+  type: NodePort
+  selector:
+    app: audit-service
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+      name: web
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: audit-service-monitor
+spec:
+  selector:
+    matchLabels:
+      app: audit-service
+  endpoints:
+    - interval: 15s
+      port: web
+      path: /actuator/prometheus

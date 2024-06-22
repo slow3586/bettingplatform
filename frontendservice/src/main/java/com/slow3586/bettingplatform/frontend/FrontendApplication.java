@@ -14,9 +14,9 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 
 @SpringBootApplication
 @ComponentScan(value = {"com.slow3586.bettingplatform.*"})
-@EnableKafka
 @EnableAspectJAutoProxy
 @EnableWebSecurity
+@EnableKafka
 public class FrontendApplication {
 
     public static void main(String[] args) {

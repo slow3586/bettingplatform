@@ -4,7 +4,7 @@ metadata:
   name: kafdrop-deployment
 spec:
   replicas: 1
-  minReadySeconds: 10
+  minReadySeconds: 30
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -32,11 +32,17 @@ spec:
           readinessProbe:
             httpGet:
               path: /
-              port: http
+              port: 9000
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 15
           livenessProbe:
             httpGet:
               path: /
-              port: http
+              port: 9000
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 15
 ---
 apiVersion: v1
 kind: Service
@@ -49,7 +55,5 @@ spec:
   selector:
     app: kafdrop
   ports:
-    - name: http
+    - name: port0
       port: 9000
-      targetPort: 9000
-      protocol: TCP

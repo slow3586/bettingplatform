@@ -5,6 +5,7 @@ metadata:
 spec:
   serviceName: zipkin-service
   replicas: 1
+  minReadySeconds: 30
   selector:
     matchLabels:
       app: zipkin
@@ -17,12 +18,26 @@ spec:
         - name: zipkin-container
           image: openzipkin/zipkin:3.4
           ports:
-            - containerPort: 9200
+            - containerPort: 9411
           env:
             - name: STORAGE_TYPE
               value: "elasticsearch"
             - name: ES_HOSTS
               value: "elasticsearch-service:9200"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 9411
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 15
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 9411
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 15
 ---
 apiVersion: v1
 kind: Service

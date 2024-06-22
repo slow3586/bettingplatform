@@ -5,6 +5,7 @@ metadata:
 spec:
   serviceName: main-service-postgres-service
   replicas: 1
+  minReadySeconds: 30
   selector:
     matchLabels:
       app: main-service-postgres

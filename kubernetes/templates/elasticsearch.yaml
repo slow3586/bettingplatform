@@ -5,6 +5,7 @@ metadata:
 spec:
   serviceName: elasticsearch-service
   replicas: 1
+  minReadySeconds: 30
   selector:
     matchLabels:
       app: elasticsearch
@@ -13,6 +14,23 @@ spec:
       labels:
         app: elasticsearch
     spec:
+      initContainers:
+        - name: mkdir
+          image: busybox:1.28
+          command: [ 'mkdir', '-p', '/usr/share/elasticsearch/data/nodes/' ]
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: elasticsearch-volume
+              mountPath: /usr/share/elasticsearch/data
+        - name: chown
+          image: busybox:1.28
+          command: [ 'chown', '-R', '1000:root', '/usr/share/elasticsearch/' ]
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: elasticsearch-volume
+              mountPath: /usr/share/elasticsearch/data
       containers:
         - name: elasticsearch-container
           image: docker.elastic.co/elasticsearch/elasticsearch:7.9.3
@@ -22,11 +40,30 @@ spec:
           volumeMounts:
             - name: elasticsearch-volume
               mountPath: /usr/share/elasticsearch/data
+          env:
+            - name: discovery.type
+              value: "single-node"
+            - name: xpack.security.enabled
+              value: "false"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 9200
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 15
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 9200
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 15
   volumeClaimTemplates:
     - metadata:
         name: elasticsearch-volume
       spec:
-        storageClassName:  elasticsearch-volume-class
+        storageClassName: elasticsearch-volume-class
         accessModes: [ "ReadWriteMany" ]
         resources:
           requests:

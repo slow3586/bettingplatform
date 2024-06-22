@@ -5,6 +5,7 @@ metadata:
 spec:
   serviceName: rabbitmq-service
   replicas: 1
+  minReadySeconds: 30
   selector:
     matchLabels:
       app: rabbitmq
@@ -21,6 +22,24 @@ spec:
               name: port0
             - containerPort: 61613
               name: port1
+          readinessProbe:
+            exec:
+              command:
+                - "rabbitmq-diagnostics"
+                - "-q"
+                - "ping"
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 15
+          livenessProbe:
+            exec:
+              command:
+                - "rabbitmq-diagnostics"
+                - "-q"
+                - "ping"
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 15
           volumeMounts:
             - name: config-volume
               mountPath: /etc/rabbitmq
@@ -35,7 +54,7 @@ spec:
                 path: enabled_plugins
   volumeClaimTemplates:
     - metadata:
-        name: data
+        name: rabbitmq-volume
       spec:
         storageClassName: rabbitmq-volume-class
         accessModes: ["ReadWriteMany"]
@@ -48,8 +67,7 @@ kind: ConfigMap
 metadata:
   name: rabbitmq-config
 data:
-  enabled_plugins: |
-    [rabbitmq_management,rabbitmq_stomp]
+  enabled_plugins: "[rabbitmq_management,rabbitmq_stomp]."
 ---
 kind: PersistentVolume
 apiVersion: v1

@@ -5,22 +5,27 @@ x-logging: &logging
   options:
     gelf-address: "udp://host.docker.internal:12201"
 
+x-healthcheck: &healthcheck
+  interval: 5s
+  timeout: 5s
+  retries: 20
+  start_period: 5s
+
 services:
   router-service:
     build: ./routerservice
     logging: *logging
+    depends_on:
+      kafka-broker-0:
+        condition: service_healthy
     environment:
-      - KAFKA_BROKERS=kafka-broker-0:9091
       - management.zipkin.tracing.endpoint=http://zipkin:9411/api/v2/spans
+      - KAFKA_BROKERS=kafka-broker-0:9091
     ports:
       - "8081:8080"
-    extra_hosts:
-      host.docker.internal: host-gateway
     healthcheck:
       test: "wget --no-verbose --tries=1 --spider 127.0.0.1:8080/actuator/health || exit 1"
-      interval: 2s
-      timeout: 2s
-      retries: 20
+      <<: *healthcheck
 
   user-service:
     build: ./userservice
@@ -40,9 +45,7 @@ services:
       - "8082:8080"
     healthcheck:
       test: "wget --no-verbose --tries=1 --spider 127.0.0.1:8080/actuator/health || exit 1"
-      interval: 2s
-      timeout: 2s
-      retries: 20
+      <<: *healthcheck
 
   user-service-db:
     image: postgres:alpine
@@ -57,9 +60,7 @@ services:
       - "5434:5432"
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
-      interval: 5s
-      timeout: 5s
-      retries: 3
+      <<: *healthcheck
 
   main-service:
     build: ./mainservice
@@ -80,9 +81,7 @@ services:
       - management.zipkin.tracing.endpoint=http://zipkin:9411/api/v2/spans
     healthcheck:
       test: "wget --no-verbose --tries=1 --spider 127.0.0.1:8080/actuator/health || exit 1"
-      interval: 2s
-      timeout: 2s
-      retries: 20
+      <<: *healthcheck
 
   main-service-db:
     image: postgres:alpine
@@ -97,9 +96,7 @@ services:
       - "5435:5432"
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
-      interval: 2s
-      timeout: 2s
-      retries: 20
+      <<: *healthcheck
 
   audit-service:
     build: ./auditservice
@@ -108,17 +105,19 @@ services:
       kafka-broker-0:
         condition: service_healthy
       prometheus:
-        condition: service_started
+        condition: service_healthy
       grafana:
-        condition: service_started
+        condition: service_healthy
       zipkin:
-        condition: service_started
+        condition: service_healthy
       logstash:
-        condition: service_started
+        condition: service_healthy
       kibana:
-        condition: service_started
+        condition: service_healthy
       kafdrop:
-        condition: service_started
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
     ports:
       - "8084:8080"
     environment:
@@ -130,9 +129,7 @@ services:
       - ELASTIC_PATH=elasticsearch:9200
     healthcheck:
       test: "wget --no-verbose --tries=1 --spider 127.0.0.1:8080/actuator/health || exit 1"
-      interval: 2s
-      timeout: 2s
-      retries: 20
+      <<: *healthcheck
 
   frontend-service:
     build: ./frontendservice
@@ -144,9 +141,7 @@ services:
       - management.zipkin.tracing.endpoint=http://zipkin:9411/api/v2/spans
     healthcheck:
       test: "wget --no-verbose --tries=1 --spider 127.0.0.1:8080/actuator/health || exit 1"
-      interval: 2s
-      timeout: 2s
-      retries: 20
+      <<: *healthcheck
 
   websocket-service:
     build: ./websocketservice
@@ -170,9 +165,7 @@ services:
       - management.zipkin.tracing.endpoint=http://zipkin:9411/api/v2/spans
     healthcheck:
       test: "wget --no-verbose --tries=1 --spider 127.0.0.1:8080/actuator/health || exit 1"
-      interval: 2s
-      timeout: 2s
-      retries: 20
+      <<: *healthcheck
 
   websocket-service-rabbitmq:
     build:
@@ -187,27 +180,26 @@ services:
       - RABBITMQ_DEFAULT_PASS=admin
     healthcheck:
       test: rabbitmq-diagnostics -q ping
-      interval: 2s
-      timeout: 2s
-      retries: 20
+      <<: *healthcheck
 
   kafka-zookeeper:
     image: confluentinc/cp-zookeeper:7.4.4
     logging: *logging
-    depends_on:
-      kafdrop:
-        condition: service_started
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - "2181:2181"
+    healthcheck:
+      test: "nc -z 127.0.0.1 2181 || exit 1"
+      <<: *healthcheck
 
   kafka-broker-0:
     image: confluentinc/cp-kafka:7.4.4
     logging: *logging
     depends_on:
-      - kafka-zookeeper
+      kafka-zookeeper:
+        condition: service_healthy
     ports:
       - "9090:9090"
       - "9091:9091"
@@ -221,28 +213,34 @@ services:
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: true
     healthcheck:
-      test: nc -z 127.0.0.1 9091 || exit -1
-      interval: 2s
-      timeout: 2s
-      retries: 20
+      test: "nc -z 127.0.0.1 9091 || exit 1"
+      <<: *healthcheck
 
   kafdrop:
     image: obsidiandynamics/kafdrop:4.0.1
     logging: *logging
     restart: always
+    depends_on:
+      - kafka-broker-0
     ports:
       - "9000:9000"
     environment:
       KAFKA_BROKERCONNECT: "kafka-broker-0:9090"
+    healthcheck:
+      test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:9000 || exit 1"
+      <<: *healthcheck
 
   prometheus:
     image: prom/prometheus:v2.53.0
     logging: *logging
-    restart: always
+
     volumes:
       - ./prometheus.yaml:/etc/prometheus/prometheus.yml
     ports:
       - "9089:9090"
+    healthcheck:
+      test: "wget --no-verbose --tries=1 --spider 127.0.0.1:9090 || exit 1"
+      <<: *healthcheck
 
   zipkin:
     image: openzipkin/zipkin:3.4
@@ -250,6 +248,9 @@ services:
     restart: always
     ports:
       - "9411:9411"
+    healthcheck:
+      test: "wget --no-verbose --tries=1 --spider 127.0.0.1:9411 || exit 1"
+      <<: *healthcheck
 
   grafana:
     image: grafana/grafana:10.4.4
@@ -257,28 +258,43 @@ services:
     restart: always
     ports:
       - "3000:3000"
+    healthcheck:
+      test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:3000 || exit 1"
+      <<: *healthcheck
 
   logstash:
     image: logstash:8.14.1
     volumes:
       - ./logstash.conf:/etc/logstash/logstash.conf
     command: logstash -f /etc/logstash/logstash.conf
+    restart: always
     ports:
       - "12201:12201/udp"
+    healthcheck:
+      test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:9600 || exit 1"
+      <<: *healthcheck
 
   elasticsearch:
     image: elasticsearch:8.14.1
     logging: *logging
+    restart: always
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
     ports:
       - "9200:9200"
+    healthcheck:
+      test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:9200 || exit 1"
+      <<: *healthcheck
 
   kibana:
     image: kibana:8.14.1
     logging: *logging
+    restart: always
     ports:
       - "5601:5601"
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    healthcheck:
+      test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:5601 || exit 1"
+      <<: *healthcheck

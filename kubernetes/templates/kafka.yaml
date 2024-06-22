@@ -5,6 +5,7 @@ metadata:
 spec:
   serviceName: kafka-service
   replicas: 1
+  minReadySeconds: 30
   selector:
     matchLabels:
       app: kafka
@@ -17,8 +18,8 @@ spec:
         - name: kafka-container
           image: confluentinc/cp-kafka:7.4.4
           ports:
+            - containerPort: 9090
             - containerPort: 9091
-              name: http
           volumeMounts:
             - name: kafka-volume
               mountPath: /var/lib/kafka
@@ -37,6 +38,21 @@ spec:
               value: "1"
             - name: KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS
               value: "0"
+          readinessProbe:
+            tcpSocket:
+              port: 9091
+            timeoutSeconds: 5
+            periodSeconds: 5
+            initialDelaySeconds: 30
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - "sh /bin/kafka-broker-api-versions --bootstrap-server=localhost:9091"
+            timeoutSeconds: 5
+            periodSeconds: 5
+            initialDelaySeconds: 30
   volumeClaimTemplates:
     - metadata:
         name: kafka-volume
@@ -71,11 +87,7 @@ spec:
   selector:
     app: kafka
   ports:
-    - name: http
-      port: 9090
-      targetPort: 9090
-      protocol: TCP
-    - name: http2
-      port: 9091
-      targetPort: 9091
-      protocol: TCP
+    - port: 9090
+      name: port0
+    - port: 9091
+      name: port1

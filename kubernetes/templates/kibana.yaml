@@ -4,7 +4,7 @@ metadata:
   name: kibana-deployment
 spec:
   replicas: 1
-  minReadySeconds: 10
+  minReadySeconds: 30
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: kibana-container
-          image: kibana:8.14.1
+          image: kibana:7.9.3
           imagePullPolicy: IfNotPresent
           env:
             - name: ELASTICSEARCH_HOSTS
@@ -31,10 +31,16 @@ spec:
             httpGet:
               path: /
               port: 5601
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 15
           livenessProbe:
             httpGet:
               path: /
               port: 5601
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 15
 ---
 apiVersion: v1
 kind: Service
@@ -47,6 +53,5 @@ spec:
   selector:
     app: kibana
   ports:
-    - port: 5601
-      targetPort: 5601
-      protocol: TCP
+    - name: port0
+      port: 5601

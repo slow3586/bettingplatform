@@ -4,7 +4,7 @@ metadata:
   name: websocket-service-deployment
 spec:
   replicas: 1
-  minReadySeconds: 10
+  minReadySeconds: 30
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -25,6 +25,8 @@ spec:
           env:
             - name: management.zipkin.tracing.endpoint
               value: http://zipkin-service:9411/api/v2/spans
+            - name: KAFKA_BROKERS
+              value: kafka-service:9091
           ports:
             - containerPort: 8080
           readinessProbe:

@@ -5,6 +5,7 @@ metadata:
 spec:
   serviceName: user-service-postgres-service
   replicas: 1
+  minReadySeconds: 30
   selector:
     matchLabels:
       app: user-service-postgres
@@ -29,7 +30,7 @@ spec:
           ports:
             - containerPort: 5432
           volumeMounts:
-            - name: user-service-postgres-container-vol
+            - name: user-service-postgres-volume
               mountPath: /var/lib/postgresql/data
             - name: user-service-postgres-configmap-init-vol
               mountPath: /docker-entrypoint-initdb.d
@@ -39,7 +40,7 @@ spec:
             name: user-service-postgres-configmap-init
   volumeClaimTemplates:
     - metadata:
-        name: data
+        name: user-service-postgres-volume
       spec:
         storageClassName: user-service-postgres-volume-class
         accessModes: [ "ReadWriteMany" ]

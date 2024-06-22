@@ -1,10 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: audit-service-deployment
+  name: main-service-deployment
 spec:
   replicas: 1
-  minReadySeconds: 10
+  minReadySeconds: 30
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -12,19 +12,23 @@ spec:
     type: RollingUpdate
   selector:
     matchLabels:
-      app: audit-service
+      app: main-service
   template:
     metadata:
       labels:
-        app: audit-service
+        app: main-service
     spec:
       containers:
-        - name: audit-service-container
-          image: slow3586/betting-platform:audit-service-0.0.1
+        - name: main-service-container
+          image: slow3586/betting-platform:main-service-0.0.1
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           env:
             - name: management.zipkin.tracing.endpoint
               value: http://zipkin-service:9411/api/v2/spans
+            - name: spring.datasource.url
+              value: jdbc:postgresql://main-service-postgres-service:5432/postgres
+            - name: KAFKA_BROKERS
+              value: kafka-service:9091
           ports:
             - containerPort: 8080
           readinessProbe:
@@ -39,13 +43,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: audit-service-service
+  name: main-service-service
   labels:
-    app: audit-service
+    app: main-service
 spec:
   type: NodePort
   selector:
-    app: audit-service
+    app: main-service
   ports:
     - protocol: TCP
       port: 8080
@@ -55,11 +59,11 @@ spec:
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: audit-service-monitor
+  name: main-service-monitor
 spec:
   selector:
     matchLabels:
-      app: audit-service
+      app: main-service
   endpoints:
     - interval: 15s
       port: web

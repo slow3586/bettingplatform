@@ -4,7 +4,7 @@ metadata:
   name: user-service-deployment
 spec:
   replicas: 1
-  minReadySeconds: 10
+  minReadySeconds: 30
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -27,6 +27,8 @@ spec:
               value: http://zipkin-service:9411/api/v2/spans
             - name: spring.datasource.url
               value: jdbc:postgresql://user-service-postgres-service:5432/postgres
+            - name: KAFKA_BROKERS
+              value: kafka-service:9091
           ports:
             - containerPort: 8080
           readinessProbe:

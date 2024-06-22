@@ -4,7 +4,7 @@ metadata:
   name: router-service-deployment
 spec:
   replicas: 1
-  minReadySeconds: 10
+  minReadySeconds: 30
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -25,16 +25,24 @@ spec:
           env:
             - name: management.zipkin.tracing.endpoint
               value: http://zipkin-service:9411/api/v2/spans
+            - name: KAFKA_BROKERS
+              value: kafka-service:9091
           ports:
             - containerPort: 8080
           readinessProbe:
             httpGet:
               path: /actuator/health
               port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 15
           livenessProbe:
             httpGet:
               path: /actuator/health
               port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 15
 ---
 apiVersion: v1
 kind: Service

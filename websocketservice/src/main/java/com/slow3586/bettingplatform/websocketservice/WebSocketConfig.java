@@ -46,7 +46,7 @@ public class WebSocketConfig {
     String kafkaBrokers;
 
     @Bean
-    public MessageConverter converter() {
+    public MessageConverter amqpMessageConverter() {
         return new Jackson2JsonMessageConverter();
     }
 

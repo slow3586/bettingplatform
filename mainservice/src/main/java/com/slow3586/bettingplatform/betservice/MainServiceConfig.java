@@ -36,23 +36,9 @@ import java.util.Map;
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public class MainServiceConfig {
     @NonFinal
-    @Value("${KAFKA_BROKERS:localhost:9091}")
+    @Value("${KAFKA_BROKERS:localhost:9092}")
     String kafkaBrokers;
     MainServiceSecurityWebFilter securityWebFilter;
-
-    @PostConstruct
-    public void postConstruct() {
-        try (final Admin admin = Admin.create(Map.of(
-            AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBrokers
-        ))) {
-            admin.createTopics(List.of(
-                    new NewTopic("bet", 1, (short) 1),
-                    new NewTopic("game", 1, (short) 1),
-                    new NewTopic("price", 1, (short) 1),
-                    new NewTopic("chat_post", 1, (short) 1)),
-                new CreateTopicsOptions());
-        }
-    }
 
     @Bean
     public DefaultSecurityFilterChain securityWebFilterChain(HttpSecurity http) throws Exception {

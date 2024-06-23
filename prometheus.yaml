@@ -1,11 +1,16 @@
 global:
-  scrape_interval: 10s
+  scrape_interval: 5s
 scrape_configs:
-  - job_name: 'router'
+  - job_name: 'router-service'
     metrics_path: '/actuator/prometheus'
     static_configs:
       - targets:
-          - 'router:8080'
+          - 'router-service:8080'
+  - job_name: 'frontend-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets:
+          - 'frontend-service:8080'
   - job_name: 'audit-service'
     metrics_path: '/actuator/prometheus'
     static_configs:
@@ -21,3 +26,12 @@ scrape_configs:
     static_configs:
       - targets:
           - 'main-service:8080'
+  - job_name: 'websocket-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets:
+          - 'websocket-service:8080'
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets:
+          - 'cadvisor:8080'

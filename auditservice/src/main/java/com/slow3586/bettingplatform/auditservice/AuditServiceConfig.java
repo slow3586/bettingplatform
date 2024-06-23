@@ -31,23 +31,10 @@ import java.util.Map;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PROTECTED)
 public class AuditServiceConfig extends ReactiveElasticsearchConfiguration {
-    @Value("${KAFKA_BROKERS:localhost:9091}")
+    @Value("${KAFKA_BROKERS:localhost:9092}")
     String kafkaBrokers;
     @Value("${ELASTIC_PATH:localhost:9200}")
     String elasticPath;
-
-    @PostConstruct
-    public void postConstruct() {
-        try (final Admin admin = Admin.create(Map.of(
-            AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBrokers
-        ))) {
-            admin.createTopics(List.of(
-                    new NewTopic("logs", 1, (short) 1),
-                    new NewTopic("trace", 1, (short) 1),
-                    new NewTopic("metric", 1, (short) 1)),
-                new CreateTopicsOptions());
-        }
-    }
 
     @Bean(name = KafkaStreamsDefaultConfiguration.DEFAULT_STREAMS_CONFIG_BEAN_NAME)
     public KafkaStreamsConfiguration kStreamsConfigs() {

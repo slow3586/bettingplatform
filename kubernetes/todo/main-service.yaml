@@ -28,7 +28,7 @@ spec:
             - name: spring.datasource.url
               value: jdbc:postgresql://main-service-postgres-service:5432/postgres
             - name: KAFKA_BROKERS
-              value: kafka-service:9091
+              value: kafka-service:9092
           ports:
             - containerPort: 8080
           readinessProbe:

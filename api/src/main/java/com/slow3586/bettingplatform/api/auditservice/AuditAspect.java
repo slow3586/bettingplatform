@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -47,7 +48,7 @@ public class AuditAspect {
     @Lazy final Tracer tracer;
     @Lazy final MeterRegistry meterRegistry;
     KafkaTemplate<String, Object> kafkaTemplate;
-    @Value("${KAFKA_BROKERS:localhost:9091}")
+    @Value("${KAFKA_BROKERS:localhost:9092}")
     String kafkaBrokers;
 
     @PostConstruct
@@ -59,15 +60,6 @@ public class AuditAspect {
                 ),
                 new StringSerializer(),
                 new JsonSerializer<>()));
-
-        try (final Admin admin = Admin.create(Map.of(
-            AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBrokers
-        ))) {
-            admin.createTopics(List.of(
-                    new NewTopic("trace", 1, (short) 1),
-                    new NewTopic("metric", 1, (short) 1)),
-                new CreateTopicsOptions());
-        }
     }
 
     @Around("@within(org.springframework.web.bind.annotation.RestController) " +

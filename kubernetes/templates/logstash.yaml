@@ -40,6 +40,13 @@ spec:
             initialDelaySeconds: 15
             periodSeconds: 5
             failureThreshold: 15
+          volumeMounts:
+            - name: logstash-config-volume
+              mountPath: /etc/logstash/logstash.conf
+      volumes:
+        - name: logstash-config-volume
+          configMap:
+            name: logstash-config
 ---
 apiVersion: v1
 kind: Service
@@ -55,3 +62,21 @@ spec:
     - name: udp
       port: 12201
       protocol: UDP
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash-config
+data:
+  logstash.conf: |-
+    input {
+        gelf {
+            port => 12201
+        }
+    }
+
+      output {
+      elasticsearch {
+      hosts => ["elasticsearch-service:9200"]
+      }
+    }

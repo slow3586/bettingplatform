@@ -24,7 +24,7 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             - name: KAFKA_BROKERCONNECT
-              value: "kafka-service:9090"
+              value: "kafka-service:9091"
           ports:
             - name: http
               containerPort: 9000

@@ -1,4 +1,4 @@
-package com.slow3586.bettingplatform.api.userservice;
+package com.slow3586.bettingplatform.api.mainservice.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
@@ -13,9 +13,11 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class CustomerDto {
+public class BetDto {
+    UUID id;
+    UUID gameId;
     UUID userId;
-    String name;
-    String email;
-    double balance;
+    int typeId;
+    String status;
+    double amount;
 }

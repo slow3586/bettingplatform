@@ -1,5 +1,7 @@
-package com.slow3586.bettingplatform.api.userservice;
+package com.slow3586.bettingplatform.api.userservice.client;
 
+import com.slow3586.bettingplatform.api.userservice.dto.LoginRequest;
+import com.slow3586.bettingplatform.api.userservice.dto.RegisterRequest;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;

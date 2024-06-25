@@ -1,7 +1,7 @@
 package com.slow3586.bettingplatform.userservice.auth;
 
-import com.slow3586.bettingplatform.api.userservice.LoginRequest;
-import com.slow3586.bettingplatform.api.userservice.RegisterRequest;
+import com.slow3586.bettingplatform.api.userservice.dto.LoginRequest;
+import com.slow3586.bettingplatform.api.userservice.dto.RegisterRequest;
 import com.slow3586.bettingplatform.userservice.customer.CustomerEntity;
 import com.slow3586.bettingplatform.userservice.customer.CustomerRepository;
 import io.jsonwebtoken.Claims;
@@ -10,8 +10,14 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.reactive.ReactiveKafkaProducerTemplate;
+import org.springframework.kafka.listener.MessageListener;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
@@ -43,35 +49,28 @@ public class AuthService {
             .switchIfEmpty(Mono.error(new IllegalArgumentException("Incorrect username or password")));
     }
 
-    public Mono<UUID> register(RegisterRequest registerRequest) {
+    protected Mono<UUID> register(RegisterRequest registerRequest) {
         return Mono.just(registerRequest)
             .publishOn(Schedulers.boundedElastic())
             .filter(request -> !authRepository.existsByLogin(request.getEmail()))
             .switchIfEmpty(Mono.error(new IllegalArgumentException("Email is already taken")))
-            .handle((request, sink) -> {
-                final UUID userId = UUID.randomUUID();
+            .map((request) ->
                 authRepository.save(
                     AuthEntity.builder()
-                        .userId(userId)
                         .login(request.getEmail())
                         .email(registerRequest.getEmail())
                         .password(passwordEncoder.encode(request.getPassword()))
-                        .role("user")
-                        .build());
-                try {
-                    customerRepository.save(
-                        CustomerEntity.builder()
-                            .userId(userId)
-                            .name("name")
-                            .balance(0)
-                            .build());
-                } catch (Exception e) {
-                    authRepository.deleteByUserId(userId);
-                    sink.error(e);
-                    return;
-                }
-                sink.next(userId);
-            });
+                        .build()
+                ).getUserId())
+            .onErrorStop()
+            .map((userId) ->
+                customerRepository.save(
+                    CustomerEntity.builder()
+                        .userId(userId)
+                        .build()
+                ).getUserId())
+            .onErrorContinue((e, userId) ->
+                authRepository.deleteByUserId((UUID) userId));
     }
 
     public Mono<UUID> token(String token) {

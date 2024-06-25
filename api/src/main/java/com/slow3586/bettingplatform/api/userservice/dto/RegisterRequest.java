@@ -1,4 +1,4 @@
-package com.slow3586.bettingplatform.api.userservice;
+package com.slow3586.bettingplatform.api.userservice.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

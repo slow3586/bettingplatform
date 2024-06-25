@@ -1,7 +1,7 @@
 package com.slow3586.bettingplatform.betservice.bet;
 
-import com.slow3586.bettingplatform.api.mainservice.BetDto;
-import com.slow3586.bettingplatform.api.mainservice.BetRequest;
+import com.slow3586.bettingplatform.api.mainservice.dto.BetDto;
+import com.slow3586.bettingplatform.api.mainservice.dto.BetRequest;
 import com.slow3586.bettingplatform.api.mapstruct.IMapStructConfig;
 import com.slow3586.bettingplatform.api.mapstruct.IMapStructMapperWithRequest;
 import org.mapstruct.Mapper;

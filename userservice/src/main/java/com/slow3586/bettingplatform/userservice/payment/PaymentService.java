@@ -1,6 +1,6 @@
 package com.slow3586.bettingplatform.userservice.payment;
 
-import com.slow3586.bettingplatform.api.userservice.PaymentDto;
+import com.slow3586.bettingplatform.api.userservice.dto.PaymentDto;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;

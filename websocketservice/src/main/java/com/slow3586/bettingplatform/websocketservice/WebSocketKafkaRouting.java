@@ -1,9 +1,9 @@
 package com.slow3586.bettingplatform.websocketservice;
 
-import com.slow3586.bettingplatform.api.mainservice.BetDto;
-import com.slow3586.bettingplatform.api.mainservice.ChatPostDto;
-import com.slow3586.bettingplatform.api.mainservice.GameDto;
-import com.slow3586.bettingplatform.api.mainservice.PriceDto;
+import com.slow3586.bettingplatform.api.mainservice.dto.BetDto;
+import com.slow3586.bettingplatform.api.mainservice.dto.ChatPostDto;
+import com.slow3586.bettingplatform.api.mainservice.dto.GameDto;
+import com.slow3586.bettingplatform.api.mainservice.dto.PriceDto;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;

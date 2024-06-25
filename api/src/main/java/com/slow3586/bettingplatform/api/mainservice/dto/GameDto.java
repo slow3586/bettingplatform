@@ -1,4 +1,4 @@
-package com.slow3586.bettingplatform.api.mainservice;
+package com.slow3586.bettingplatform.api.mainservice.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Data
@@ -13,11 +14,15 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class BetDto {
+public class GameDto {
     UUID id;
-    UUID gameId;
-    UUID userId;
-    int typeId;
+    String instrument;
+    Instant createdAt;
+    Instant startAt;
+    Instant finishAt;
+    String choice0;
+    String choice1;
+    String choice2;
+    boolean isFinished;
     String status;
-    double amount;
 }

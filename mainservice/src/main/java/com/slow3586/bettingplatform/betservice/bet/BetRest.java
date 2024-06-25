@@ -1,7 +1,7 @@
 package com.slow3586.bettingplatform.betservice.bet;
 
-import com.slow3586.bettingplatform.api.mainservice.BetDto;
-import com.slow3586.bettingplatform.api.mainservice.BetRequest;
+import com.slow3586.bettingplatform.api.mainservice.dto.BetDto;
+import com.slow3586.bettingplatform.api.mainservice.dto.BetRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.AccessLevel;

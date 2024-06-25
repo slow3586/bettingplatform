@@ -1,16 +1,21 @@
 package com.slow3586.bettingplatform.userservice.customer;
 
-import com.slow3586.bettingplatform.api.userservice.CustomerDto;
+import com.slow3586.bettingplatform.api.userservice.dto.AuthDto;
+import com.slow3586.bettingplatform.api.userservice.dto.CustomerDto;
+import com.slow3586.bettingplatform.api.userservice.dto.RegisterRequest;
+import com.slow3586.bettingplatform.userservice.auth.AuthEntity;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.UUID;
 
@@ -45,5 +50,17 @@ public class CustomerService {
             .mapNotNull(Authentication::getPrincipal)
             .map(Object::toString)
             .map(UUID::fromString);
+    }
+
+    @KafkaListener(topics = "auth.register")
+    protected void register(AuthDto authDto) {
+        Mono.just(authDto)
+            .publishOn(Schedulers.boundedElastic())
+            .doOnNext((request) ->
+                customerRepository.save(
+                    CustomerEntity.builder()
+                        .userId(UUID.randomUUID())
+                        .build()))
+            .subscribe();
     }
 }

@@ -1,7 +1,7 @@
 package com.slow3586.bettingplatform.betservice.chatpost;
 
-import com.slow3586.bettingplatform.api.mainservice.ChatPostDto;
-import com.slow3586.bettingplatform.api.mainservice.ChatPostRequest;
+import com.slow3586.bettingplatform.api.mainservice.dto.ChatPostDto;
+import com.slow3586.bettingplatform.api.mainservice.dto.ChatPostRequest;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;

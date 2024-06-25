@@ -1,6 +1,6 @@
 package com.slow3586.bettingplatform.betservice.game;
 
-import com.slow3586.bettingplatform.api.mainservice.GameDto;
+import com.slow3586.bettingplatform.api.mainservice.dto.GameDto;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;

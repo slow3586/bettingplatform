@@ -1,6 +1,6 @@
 package com.slow3586.bettingplatform.userservice.customer;
 
-import com.slow3586.bettingplatform.api.userservice.CustomerDto;
+import com.slow3586.bettingplatform.api.userservice.dto.CustomerDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.AccessLevel;
@@ -45,4 +45,6 @@ public class CustomerRest {
     public void buyPremium(){
 
     }
+
+
 }

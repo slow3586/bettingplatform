@@ -20,4 +20,5 @@ public class AuthEntity {
     String email;
     @ToString.Exclude
     String password;
+    String status;
 }

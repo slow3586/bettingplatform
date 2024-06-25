@@ -86,5 +86,54 @@
             <artifactId>mapstruct</artifactId>
             <version>1.5.5.Final</version>
         </dependency>
+        <dependency>
+            <groupId>io.confluent</groupId>
+            <artifactId>kafka-avro-serializer</artifactId>
+            <version>5.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro</artifactId>
+            <version>1.11.3</version>
+        </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.avro</groupId>
+                <artifactId>avro-maven-plugin</artifactId>
+                <version>1.11.3</version>
+                <executions>
+                    <execution>
+                        <id>induce</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>induce</goal>
+                        </goals>
+                        <configuration>
+                            <javaSourceDirectories>
+                                <directory>${project.basedir}/src/main/java/com/slow3586/bettingplatform/api/userservice/dto</directory>
+                                <directory>${project.basedir}/src/main/java/com/slow3586/bettingplatform/api/userservice/dto</directory>
+                                <directory>${project.basedir}/src/main/java/com/slow3586/bettingplatform/api/auditservice/dto</directory>
+                            </javaSourceDirectories>
+                            <allowNull>true</allowNull>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>schema</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>schema</goal>
+                        </goals>
+                        <configuration>
+
+                            <sourceDirectory>${project.build.directory}/generated-resources/avro/</sourceDirectory>
+                            <outputDirectory>${project.build.directory}/generated-sources/avro/</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

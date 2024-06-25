@@ -1,21 +1,20 @@
-package com.slow3586.bettingplatform.userservice.customer;
+package com.slow3586.bettingplatform.userservice.order;
 
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Data
 @Builder
-@Table("customer")
-public class CustomerEntity {
+@Table("order")
+public class OrderEntity {
     @Id
     UUID id;
     UUID userId;
-    String name;
-    double balance;
-    String status;
-    boolean hasPremium;
+    UUID itemId;
+    Instant time;
 }

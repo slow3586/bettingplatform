@@ -1,4 +1,4 @@
-package com.slow3586.bettingplatform.api.userservice;
+package com.slow3586.bettingplatform.api.userservice.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoginRequest {
-    String login;
-    String password;
+public class OrderRequest {
+    String user;
 }

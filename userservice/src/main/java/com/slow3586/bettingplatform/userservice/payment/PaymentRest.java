@@ -15,7 +15,7 @@ import reactor.core.publisher.Mono;
 public class PaymentRest {
     PaymentService paymentService;
 
-    @PostMapping("/payment")
+    @PostMapping("payment")
     public Mono<Void> processPayment(String token) {
         return paymentService.processPayment(token);
     }

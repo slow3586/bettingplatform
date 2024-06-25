@@ -1,4 +1,4 @@
-package com.slow3586.bettingplatform.api.userservice;
+package com.slow3586.bettingplatform.api.userservice.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Data
@@ -13,10 +14,11 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class AuthDto {
+public class OrderDto {
+    UUID id;
     UUID userId;
-    String login;
-    String email;
-    String password;
-    String role;
+    Instant paidAt;
+    Instant processedAt;
+    String source;
+    double value;
 }

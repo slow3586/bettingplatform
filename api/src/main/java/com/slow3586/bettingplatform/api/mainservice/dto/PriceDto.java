@@ -1,4 +1,4 @@
-package com.slow3586.bettingplatform.api.mainservice;
+package com.slow3586.bettingplatform.api.mainservice.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
@@ -14,15 +14,9 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class GameDto {
+public class PriceDto {
     UUID id;
     String instrument;
-    Instant createdAt;
-    Instant startAt;
-    Instant finishAt;
-    String choice0;
-    String choice1;
-    String choice2;
-    boolean isFinished;
-    String status;
+    Instant time;
+    double value;
 }

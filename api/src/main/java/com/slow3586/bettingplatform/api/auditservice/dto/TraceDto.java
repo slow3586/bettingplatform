@@ -1,4 +1,4 @@
-package com.slow3586.bettingplatform.api.auditservice;
+package com.slow3586.bettingplatform.api.auditservice.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;

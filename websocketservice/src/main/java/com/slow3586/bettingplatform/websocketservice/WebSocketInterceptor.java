@@ -1,6 +1,6 @@
 package com.slow3586.bettingplatform.websocketservice;
 
-import com.slow3586.bettingplatform.api.userservice.AuthServiceClient;
+import com.slow3586.bettingplatform.api.userservice.client.AuthServiceClient;
 import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;

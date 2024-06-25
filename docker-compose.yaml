@@ -45,8 +45,6 @@ services:
     build: ./userservice
     logging: *logging
     depends_on:
-      audit-service:
-        condition: service_healthy
       kafdrop:
         condition: service_healthy
       user-service-db:
@@ -217,9 +215,9 @@ services:
     depends_on:
       kafka-zookeeper:
         condition: service_healthy
-    expose:
-      - "9091"
-      - "9092"
+    ports:
+      - "9091:9091"
+      - "9092:9092"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker-1:9091,PLAINTEXT_HOST://kafka-broker-1:9092

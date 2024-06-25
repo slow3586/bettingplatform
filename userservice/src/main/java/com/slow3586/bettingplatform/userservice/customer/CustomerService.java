@@ -52,7 +52,6 @@ public class CustomerService {
             .map(UUID::fromString);
     }
 
-    @KafkaListener(topics = "auth.register")
     protected void register(AuthDto authDto) {
         Mono.just(authDto)
             .publishOn(Schedulers.boundedElastic())

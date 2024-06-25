@@ -35,7 +35,7 @@ public class UserServiceSecurityWebFilter implements WebFilter {
             .map(l -> l.get(0))
             .filter(s -> s.startsWith(SecurityUtils.BEARER_PREFIX))
             .mapNotNull(s -> s.substring(SecurityUtils.BEARER_PREFIX.length()))
-            .flatMap(authService::token)
+            .map(authService::token)
             .map(userId ->
                 new UsernamePasswordAuthenticationToken(
                     userId,

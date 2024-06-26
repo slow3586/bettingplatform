@@ -1,6 +1,5 @@
 package com.slow3586.bettingplatform.api.auditservice;
 
-import com.slow3586.bettingplatform.api.auditservice.dto.MetricDto;
 import com.slow3586.bettingplatform.api.auditservice.dto.TraceDto;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.tracing.TraceContext;
@@ -16,6 +15,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
@@ -23,16 +23,15 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.serializer.JsonSerializer;
-import org.springframework.scheduling.annotation.Scheduled;
 
+import java.lang.reflect.UndeclaredThrowableException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 @Aspect
 @Configuration
@@ -46,6 +45,7 @@ public class AuditAspect {
     KafkaTemplate<String, Object> kafkaTemplate;
     @Value("${KAFKA_BROKERS:localhost:9092}")
     String kafkaBrokers;
+    Random random = new Random();
 
     @PostConstruct
     public void postConstruct() {
@@ -58,11 +58,20 @@ public class AuditAspect {
                 new JsonSerializer<>()));
     }
 
-    @Around("@within(org.springframework.web.bind.annotation.RestController) " +
-        "&& within(com.slow3586.bettingplatform..*) " +
-        "&& !@within(com.slow3586.bettingplatform.api.auditservice.AuditDisabled)" +
-        "&& !@within(org.springframework.scheduling.annotation.Scheduled)")
+    @Pointcut("within(com.slow3586.bettingplatform..*)")
+    public void app() {}
+
+    @Pointcut("@within(org.springframework.stereotype.Service)")
+    public void listener() {}
+
+    @Pointcut("@within(org.springframework.web.bind.annotation.RestController)")
+    public void controller() {}
+
+    @Around("app() && (listener() || controller())")
     protected Object joinPoint(@NonNull ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
+        if (random.nextInt(100) > 10) {
+            return proceedingJoinPoint.proceed();
+        }
         final Instant start = Instant.now();
         final TraceContext context = tracer == null ? null : tracer.currentTraceContext().context();
         final TraceDto.TraceDtoBuilder traceInfo = TraceDto.builder()
@@ -79,7 +88,11 @@ public class AuditAspect {
             final Object result = proceedingJoinPoint.proceed();
             traceInfo.methodResult(Objects.toString(result));
             return result;
-        } catch (final Throwable exception) {
+        } catch (final Throwable exceptionWrapper) {
+            final Throwable exception =
+                exceptionWrapper instanceof UndeclaredThrowableException
+                    ? ((UndeclaredThrowableException) exceptionWrapper).getUndeclaredThrowable()
+                    : exceptionWrapper;
             traceInfo.exceptionClass(exception.getClass().getName())
                 .exceptionMessage(exception.getMessage())
                 .exceptionStack(StringUtils.substring(
@@ -97,34 +110,5 @@ public class AuditAspect {
                     .startTime(Instant.now())
                     .build());
         }
-    }
-
-    @Scheduled(cron = "*/15 * * * * *")
-    public void sendMetrics() {
-        final HashMap<String, Double> values = new HashMap<>();
-
-        meterRegistry.forEachMeter((m) ->
-            StreamSupport.stream(m.measure().spliterator(), false)
-                .forEach(d -> {
-                    final String tags = m.getId()
-                        .getTags()
-                        .stream()
-                        .map(t -> t.getKey() + "=\"" + t.getValue() + "\"")
-                        .collect(Collectors.joining(","));
-                    final String type = d.getStatistic().getTagValueRepresentation();
-                    final String baseUnit = m.getId().getBaseUnit();
-                    final String key = m.getId().getName()
-                        + (StringUtils.isBlank(baseUnit) ? "" : "_" + baseUnit)
-                        + (StringUtils.isBlank(type) ? "" : "_" + type)
-                        + (StringUtils.isBlank(tags) ? "" : "{" + tags + "}");
-                    values.put(StringUtils.replace(key, ".", "_"), d.getValue());
-                }));
-
-        kafkaTemplate.send(
-            "metric",
-            MetricDto.builder()
-                .time(Instant.now())
-                .values(values)
-                .build());
     }
 }

@@ -14,10 +14,8 @@ import java.util.UUID;
 public class AuthEntity {
     @Id
     UUID id;
-    UUID userId;
     String login;
     String role;
-    String email;
     @ToString.Exclude
     String password;
     String status;

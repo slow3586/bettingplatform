@@ -1,9 +1,6 @@
 package com.slow3586.bettingplatform.auditservice.trace;
 
-import com.slow3586.bettingplatform.api.auditservice.dto.MetricDto;
 import com.slow3586.bettingplatform.api.auditservice.dto.TraceDto;
-import com.slow3586.bettingplatform.auditservice.metric.MetricMapper;
-import com.slow3586.bettingplatform.auditservice.metric.MetricRepository;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -24,8 +21,6 @@ import org.springframework.kafka.support.serializer.JsonSerde;
 public class TraceService {
     TraceRepository traceRepository;
     TraceMapper traceMapper;
-    MetricRepository metricRepository;
-    MetricMapper metricMapper;
     MeterRegistry meterRegistry;
 
     @Bean
@@ -41,23 +36,6 @@ public class TraceService {
 
         stream.foreach((String k, TraceDto v) ->
             traceRepository.save(traceMapper.toEntity(v)));
-
-        return stream;
-    }
-
-    @Bean
-    public KStream<String, MetricDto> metricStream(StreamsBuilder streamsBuilder) {
-        final JsonSerde<MetricDto> valueSerde = new JsonSerde<>();
-        valueSerde.deserializer().addTrustedPackages("*");
-
-        final KStream<String, MetricDto> stream = streamsBuilder.stream(
-            "metric",
-            Consumed.with(
-                Serdes.String(),
-                valueSerde));
-
-        stream.foreach((String key, MetricDto dto) ->
-            metricRepository.save(metricMapper.toEntity(dto)));
 
         return stream;
     }

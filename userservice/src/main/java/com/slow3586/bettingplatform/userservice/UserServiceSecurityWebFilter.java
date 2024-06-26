@@ -6,7 +6,6 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
@@ -22,7 +21,6 @@ import reactor.util.annotation.NonNull;
 @RequiredArgsConstructor
 @Slf4j
 public class UserServiceSecurityWebFilter implements WebFilter {
-    @Lazy
     AuthService authService;
 
     @Override

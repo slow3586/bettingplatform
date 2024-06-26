@@ -1,13 +1,8 @@
 package com.slow3586.bettingplatform.auditservice;
 
-import jakarta.annotation.PostConstruct;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.apache.kafka.clients.admin.Admin;
-import org.apache.kafka.clients.admin.AdminClientConfig;
-import org.apache.kafka.clients.admin.CreateTopicsOptions;
-import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.processor.WallclockTimestampExtractor;
@@ -24,7 +19,6 @@ import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Configuration

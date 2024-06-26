@@ -13,7 +13,7 @@ import java.util.UUID;
 public class CustomerEntity {
     @Id
     UUID id;
-    UUID userId;
+    String login;
     String name;
     double balance;
     String status;

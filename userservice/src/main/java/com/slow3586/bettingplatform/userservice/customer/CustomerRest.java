@@ -29,16 +29,16 @@ public class CustomerRest {
         return customerService.getByCurrentUser();
     }
 
-    @GetMapping("/private/{uuid}")
-    @PreAuthorize("isAuthenticated() && #uuid.toString() == authentication.name")
+    @GetMapping("/private/{login}")
+    @PreAuthorize("isAuthenticated() && #login.toString() == authentication.name")
     @Operation(security = @SecurityRequirement(name = "BearerAuth"))
-    public Mono<CustomerDto> getPrivateByUser(@PathVariable("uuid") UUID uuid) {
-        return customerService.getPrivateByUser(uuid);
+    public Mono<CustomerDto> getPrivateByUser(@PathVariable("login") String login) {
+        return customerService.getPrivateByUser(login);
     }
 
-    @GetMapping("/public/{uuid}")
-    public Mono<CustomerDto> getPublicByUser(@PathVariable("uuid") UUID uuid) {
-        return customerService.getPublicByUser(uuid);
+    @GetMapping("/public/{login}")
+    public Mono<CustomerDto> getPublicByUser(@PathVariable("login") String login) {
+        return customerService.getPublicByUser(login);
     }
 
     @Operation(security = @SecurityRequirement(name = "BearerAuth"))

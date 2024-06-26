@@ -14,7 +14,6 @@
         <module>frontendservice</module>
         <module>websocketservice</module>
         <module>auditservice</module>
-        <module>routerservice</module>
     </modules>
     <groupId>com.slow3586</groupId>
     <artifactId>bettingplatform</artifactId>

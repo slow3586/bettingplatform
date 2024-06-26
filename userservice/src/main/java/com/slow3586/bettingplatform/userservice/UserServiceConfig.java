@@ -1,21 +1,23 @@
 package com.slow3586.bettingplatform.userservice;
 
 import com.slow3586.bettingplatform.api.kafka.KafkaReplyErrorChecker;
-import com.slow3586.bettingplatform.api.kafka.ReplyingKafkaTemplateErrorHandler;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.header.Header;
+import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.processor.WallclockTimestampExtractor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.annotation.KafkaStreamsDefaultConfiguration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
+import org.springframework.kafka.config.KafkaStreamsConfiguration;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -24,16 +26,11 @@ import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.requestreply.ReplyingKafkaTemplate;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
-import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
-import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.security.web.server.context.WebSessionServerSecurityContextRepository;
 
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Function;
 
 @Configuration
 @RequiredArgsConstructor
@@ -45,18 +42,6 @@ public class UserServiceConfig {
     @NonFinal
     @Value("${KAFKA_SCHEMA_REGISTRY_URL:http://localhost:8095}")
     String kafkaSchemaRegistry;
-    UserServiceSecurityWebFilter userServiceSecurityWebFilter;
-
-    @Bean
-    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
-        return http.csrf(ServerHttpSecurity.CsrfSpec::disable)
-            .cors(ServerHttpSecurity.CorsSpec::disable)
-            .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
-            .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
-            .securityContextRepository(new WebSessionServerSecurityContextRepository())
-            .addFilterBefore(userServiceSecurityWebFilter, SecurityWebFiltersOrder.HTTP_BASIC)
-            .build();
-    }
 
     @Bean
     public ProducerFactory<String, Object> kafkaProducerFactory() {
@@ -66,6 +51,18 @@ public class UserServiceConfig {
                 "schema.registry.url", kafkaSchemaRegistry
             ), new StringSerializer(),
             new JsonSerializer<>());
+    }
+
+    @Bean(name = KafkaStreamsDefaultConfiguration.DEFAULT_STREAMS_CONFIG_BEAN_NAME)
+    public KafkaStreamsConfiguration kafkaStreamsConfiguration() {
+        Map<String, Object> props = new HashMap<>();
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "user-service-streams");
+        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBrokers);
+        props.put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG, "2000");
+        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
+        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
+        props.put(StreamsConfig.DEFAULT_TIMESTAMP_EXTRACTOR_CLASS_CONFIG, WallclockTimestampExtractor.class.getName());
+        return new KafkaStreamsConfiguration(props);
     }
 
     @Bean

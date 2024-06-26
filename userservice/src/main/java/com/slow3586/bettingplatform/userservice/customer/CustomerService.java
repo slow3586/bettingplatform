@@ -1,21 +1,16 @@
 package com.slow3586.bettingplatform.userservice.customer;
 
-import com.slow3586.bettingplatform.api.userservice.dto.AuthDto;
 import com.slow3586.bettingplatform.api.userservice.dto.CustomerDto;
-import com.slow3586.bettingplatform.api.userservice.dto.RegisterRequest;
-import com.slow3586.bettingplatform.userservice.auth.AuthEntity;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 import java.util.UUID;
 
@@ -32,23 +27,22 @@ public class CustomerService {
         return this.getCurrentUserId().flatMap(this::getPrivateByUser);
     }
 
-    public Mono<CustomerDto> getPrivateByUser(UUID uuid) {
-        return Mono.just(uuid)
-            .mapNotNull(customerRepository::findByUserId)
+    public Mono<CustomerDto> getPrivateByUser(String login) {
+        return Mono.just(login)
+            .mapNotNull(customerRepository::findByLogin)
             .flatMap(Mono::justOrEmpty)
             .map(customerMapper::toDto)
             .switchIfEmpty(Mono.error(new RuntimeException("User not found")));
     }
 
-    public Mono<CustomerDto> getPublicByUser(UUID uuid) {
-        return getPrivateByUser(uuid);
+    public Mono<CustomerDto> getPublicByUser(String login) {
+        return getPrivateByUser(login);
     }
 
-    public Mono<UUID> getCurrentUserId() {
+    public Mono<String> getCurrentUserId() {
         return ReactiveSecurityContextHolder.getContext()
             .mapNotNull(SecurityContext::getAuthentication)
             .mapNotNull(Authentication::getPrincipal)
-            .map(Object::toString)
-            .map(UUID::fromString);
+            .map(Object::toString);
     }
 }

@@ -12,6 +12,7 @@ import org.springframework.kafka.annotation.EnableKafkaStreams;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.reactive.config.EnableWebFlux;
 
 @SpringBootApplication
@@ -23,6 +24,7 @@ import org.springframework.web.reactive.config.EnableWebFlux;
 @EnableWebFluxSecurity
 @EnableReactiveMethodSecurity
 @EnableKafkaStreams
+@EnableTransactionManagement
 @SecurityScheme(
     name = "BearerAuth",
     scheme = "bearer",

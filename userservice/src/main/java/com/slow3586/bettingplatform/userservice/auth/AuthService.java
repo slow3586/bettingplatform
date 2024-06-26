@@ -1,14 +1,17 @@
 package com.slow3586.bettingplatform.userservice.auth;
 
+import com.slow3586.bettingplatform.api.userservice.dto.AuthDto;
 import com.slow3586.bettingplatform.api.userservice.dto.LoginRequest;
 import com.slow3586.bettingplatform.api.userservice.dto.RegisterRequest;
 import com.slow3586.bettingplatform.userservice.customer.CustomerEntity;
 import com.slow3586.bettingplatform.userservice.customer.CustomerRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import jakarta.annotation.PostConstruct;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StoreQueryParameters;
@@ -20,6 +23,7 @@ import org.springframework.kafka.config.StreamsBuilderFactoryBean;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
@@ -42,70 +46,78 @@ public class AuthService {
     PasswordEncoder passwordEncoder;
     SecretKey secretKey;
     StreamsBuilderFactoryBean streamsBuilderFactoryBean;
+    @NonFinal
+    KafkaStreams kafkaStreams;
+    @NonFinal
+    ReadOnlyKeyValueStore<String, AuthDto> authStore;
+
+    @PostConstruct
+    public void init() {
+        new Thread(() -> {
+            try {
+                while (!streamsBuilderFactoryBean.isRunning()) {
+                    Thread.sleep(1000);
+                    log.info("Waiting for streams to start...");
+                }
+                kafkaStreams = streamsBuilderFactoryBean.getKafkaStreams();
+                authStore = kafkaStreams.store(
+                    StoreQueryParameters.fromNameAndType(
+                        "USER_SERVICE_AUTH_BY_LOGIN",
+                        QueryableStoreTypes.keyValueStore()));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }).start();
+    }
 
     @KafkaHandler
     public String login(LoginRequest loginRequest) {
-        KafkaStreams kafkaStreams = streamsBuilderFactoryBean.getKafkaStreams();
-        ReadOnlyKeyValueStore<String, String> loginUserIdStore =
-            kafkaStreams.store(StoreQueryParameters.fromNameAndType(
-                "user-service.table.auth.login.user_id",
-                QueryableStoreTypes.keyValueStore()));
-        String userId = loginUserIdStore.get(loginRequest.getLogin());
-        if (userId != null) {
-            ReadOnlyKeyValueStore<String, String> loginPasswordStore =
-                kafkaStreams.store(StoreQueryParameters.fromNameAndType(
-                    "user-service.table.auth.login.password",
-                    QueryableStoreTypes.keyValueStore()));
-            if (passwordEncoder.matches(
-                loginRequest.getPassword(),
-                loginPasswordStore.get(loginRequest.getLogin()))
-            ) {
-                return this.generateToken(UUID.fromString(userId));
-            }
+        final AuthDto authDto = authStore.get(loginRequest.getLogin());
+
+        if (authDto != null
+            && passwordEncoder.matches(
+            loginRequest.getPassword(),
+            authDto.getPassword())
+        ) {
+            return this.generateToken(UUID.fromString(loginRequest.getLogin()));
         }
+
         throw new IllegalArgumentException("Incorrect username or password");
     }
 
     @KafkaHandler
-    protected UUID register(RegisterRequest registerRequest) {
-        if (authRepository.existsByLogin(registerRequest.getEmail())) {
+    @Transactional
+    protected String register(RegisterRequest registerRequest) {
+        if (authStore.get(registerRequest.getEmail()) != null) {
             throw new IllegalArgumentException("Email address already in use");
         }
 
-        final AuthEntity authEntity = authRepository.save(
+        final String login = authRepository.save(
             AuthEntity.builder()
-                .userId(UUID.randomUUID())
                 .login(registerRequest.getEmail())
-                .email(registerRequest.getEmail())
                 .role("user")
                 .status("new")
-                .password(registerRequest.getPassword())
+                .password(passwordEncoder.encode(registerRequest.getPassword()))
+                .build()).getLogin();
+
+        customerRepository.save(
+            CustomerEntity.builder()
+                .name("name")
+                .login(login)
+                .balance(0)
+                .status("normal")
+                .hasPremium(false)
                 .build());
 
-        try {
-            customerRepository.save(
-                CustomerEntity.builder()
-                    .name(authEntity.getLogin())
-                    .userId(authEntity.getUserId())
-                    .balance(0)
-                    .status("normal")
-                    .hasPremium(false)
-                    .build());
-        } catch (Exception e) {
-            authRepository.delete(authEntity);
-            throw e;
-        }
-
-        return authEntity.getUserId();
+        return login;
     }
 
     @KafkaHandler
-    public UUID token(String token) {
+    public String token(String token) {
         return Mono.just(token)
             .publishOn(Schedulers.boundedElastic())
             .flatMap(this::getTokenSubject)
-            .map(UUID::fromString)
-            .filter(authRepository::existsByUserId)
+            .filter(login -> authStore.get(login) != null)
             .block(Duration.ofMinutes(1));
     }
 

@@ -7,11 +7,22 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import java.lang.reflect.UndeclaredThrowableException;
+
 @Slf4j
 @ControllerAdvice
 public class UserServiceExceptionHandler {
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity exception(Exception e) {
+    @ExceptionHandler(Throwable.class)
+    public ResponseEntity exception(Throwable e) {
+        log.error("#exception handler", e);
+        return ResponseEntity
+            .status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(e.getClass().getSimpleName() + ": " + e.getMessage());
+    }
+
+    @ExceptionHandler(UndeclaredThrowableException.class)
+    public ResponseEntity undeclared(Throwable e) {
+        log.error("#exception handler", e);
         return ResponseEntity
             .status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(e.getClass().getSimpleName() + ": " + e.getMessage());

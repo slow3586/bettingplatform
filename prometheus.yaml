@@ -16,16 +16,21 @@ scrape_configs:
     static_configs:
       - targets:
           - 'audit-service:8080'
-  - job_name: 'user-service'
-    metrics_path: '/actuator/prometheus'
-    static_configs:
-      - targets:
-          - 'user-service:8080'
   - job_name: 'user-service-1'
     metrics_path: '/actuator/prometheus'
     static_configs:
       - targets:
           - 'user-service-1:8080'
+  - job_name: 'user-service-2'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets:
+          - 'user-service-2:8080'
+  - job_name: 'user-service-3'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets:
+          - 'user-service-3:8080'
   - job_name: 'main-service'
     metrics_path: '/actuator/prometheus'
     static_configs:

@@ -15,6 +15,7 @@ x-spring-env: &spring-env
   KAFKA_BROKERS: kafka-broker-1:9092,kafka-broker-2:9092,kafka-broker-3:9092
   management.zipkin.tracing.endpoint: http://zipkin:9411/api/v2/spans
   JAVA_OPTS: -Xms64M -Xmx512M
+  server.tomcat.threads.max: 500
 
 x-kafka-env: &kafka-env
   KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
@@ -22,28 +23,14 @@ x-kafka-env: &kafka-env
   KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
   KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
   KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 100
-  KAFKA_NUM_PARTITIONS: 3
+  KAFKA_NUM_PARTITIONS: 12
   KAFKA_DEFAULT_REPLICATION_FACTOR: 3
   KAFKA_HEAP_OPTS: -Xms64M -Xmx512M
 
 services:
-  router-service:
-    build: ./routerservice
-    logging: *logging
-    depends_on:
-      kafdrop:
-        condition: service_healthy
-    environment:
-      <<: *spring-env
-    ports:
-      - "8081:8080"
-    healthcheck:
-      test: "wget --no-verbose --tries=1 --spider 127.0.0.1:8080/actuator/health || exit 1"
-      <<: *healthcheck
-
   user-service:
     build: ./userservice
-    logging: *logging
+    #logging: *logging
     depends_on:
       kafdrop:
         condition: service_healthy
@@ -58,9 +45,26 @@ services:
       test: "wget --no-verbose --tries=1 --spider 127.0.0.1:8080/actuator/health || exit 1"
       <<: *healthcheck
 
+  user-service-1:
+    build: ./userservice
+    #logging: *logging
+    depends_on:
+      kafdrop:
+        condition: service_healthy
+      user-service-db:
+        condition: service_healthy
+    environment:
+      <<: *spring-env
+      spring.datasource.url: 'jdbc:postgresql://user-service-db:5432/postgres'
+    ports:
+      - "8092:8080"
+    healthcheck:
+      test: "wget --no-verbose --tries=1 --spider 127.0.0.1:8080/actuator/health || exit 1"
+      <<: *healthcheck
+
   user-service-db:
     image: postgres:alpine
-    logging: *logging
+    #logging: *logging
     environment:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
@@ -77,129 +81,9 @@ services:
       test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
       <<: *healthcheck
 
-  main-service:
-    build: ./mainservice
-    logging: *logging
-    depends_on:
-      audit-service:
-        condition: service_healthy
-      kafdrop:
-        condition: service_healthy
-      main-service-db:
-        condition: service_healthy
-    ports:
-      - "8083:8080"
-    environment:
-      spring.datasource.url: 'jdbc:postgresql://main-service-db:5432/postgres'
-      app.client.user: 'http://user-service:8080'
-      <<: *spring-env
-    healthcheck:
-      test: "wget --no-verbose --tries=1 --spider 127.0.0.1:8080/actuator/health || exit 1"
-      <<: *healthcheck
-
-  main-service-db:
-    image: postgres:alpine
-    logging: *logging
-    environment:
-      POSTGRES_DB: postgres
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    volumes:
-      - ./mainservice/init.sql:/docker-entrypoint-initdb.d/init.sql
-    ports:
-      - "5435:5432"
-    command: >
-      postgres 
-      -c ssl=off
-      -c wal_level=logical
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
-      <<: *healthcheck
-
-  audit-service:
-    build: ./auditservice
-    logging: *logging
-    depends_on:
-      prometheus:
-        condition: service_healthy
-      grafana:
-        condition: service_healthy
-      zipkin:
-        condition: service_healthy
-      logstash:
-        condition: service_healthy
-      #kibana:
-      #  condition: service_healthy
-      kafdrop:
-        condition: service_healthy
-      elasticsearch:
-        condition: service_healthy
-      cadvisor:
-        condition: service_healthy
-    ports:
-      - "8084:8080"
-    environment:
-      <<: *spring-env
-      ELASTIC_PATH: 'elasticsearch:9200'
-    healthcheck:
-      test: "wget --no-verbose --tries=1 --spider 127.0.0.1:8080/actuator/health || exit 1"
-      <<: *healthcheck
-
-  frontend-service:
-    build: ./frontendservice
-    logging: *logging
-    depends_on:
-      kafdrop:
-        condition: service_healthy
-    ports:
-      - "8085:8080"
-    environment:
-      <<: *spring-env
-    healthcheck:
-      test: "wget --no-verbose --tries=1 --spider 127.0.0.1:8080/actuator/health || exit 1"
-      <<: *healthcheck
-
-  websocket-service:
-    build: ./websocketservice
-    logging: *logging
-    depends_on:
-      audit-service:
-        condition: service_healthy
-      user-service:
-        condition: service_healthy
-      kafdrop:
-        condition: service_healthy
-      websocket-service-rabbitmq:
-        condition: service_healthy
-    ports:
-      - "8086:8080"
-    environment:
-      spring.rabbitmq.host: websocket-service-rabbitmq
-      app.client.user: 'http://user-service:8080'
-      app.client.main: 'http://main-service:8080'
-      <<: *spring-env
-    healthcheck:
-      test: "wget --no-verbose --tries=1 --spider 127.0.0.1:8080/actuator/health || exit 1"
-      <<: *healthcheck
-
-  websocket-service-rabbitmq:
-    build:
-      dockerfile: ./rabbit.Dockerfile
-    logging: *logging
-    ports:
-      - "5672:5672"
-      - "61613:61613"
-      - "15672:15672"
-    environment:
-      RABBITMQ_DEFAULT_USER: admin
-      RABBITMQ_DEFAULT_PASS: admin
-    healthcheck:
-      test: rabbitmq-diagnostics -q ping
-      <<: *healthcheck
-
   kafka-zookeeper:
     image: confluentinc/cp-zookeeper:7.4.4
-    logging: *logging
+    #logging: *logging
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -211,7 +95,7 @@ services:
 
   kafka-broker-1:
     image: confluentinc/cp-kafka:7.4.4
-    logging: *logging
+    #logging: *logging
     depends_on:
       kafka-zookeeper:
         condition: service_healthy
@@ -228,7 +112,7 @@ services:
 
   kafka-broker-2:
     image: confluentinc/cp-kafka:7.4.4
-    logging: *logging
+    #logging: *logging
     depends_on:
       kafka-zookeeper:
         condition: service_healthy
@@ -245,7 +129,7 @@ services:
 
   kafka-broker-3:
     image: confluentinc/cp-kafka:7.4.4
-    logging: *logging
+    #logging: *logging
     depends_on:
       kafka-zookeeper:
         condition: service_healthy
@@ -274,19 +158,19 @@ services:
       "
       set -x
       sleep 1
-      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic logs --replication-factor 3 --partitions 3
-      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic trace --replication-factor 3 --partitions 3
-      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic metric --replication-factor 3 --partitions 3
-      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic bet --replication-factor 3 --partitions 3
-      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic game --replication-factor 3 --partitions 3
-      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic price --replication-factor 3 --partitions 3
-      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic chat_post --replication-factor 3 --partitions 3
+      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --topic logs --replication-factor 3 --partitions 12
+      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --topic trace --replication-factor 3 --partitions 12
+      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --topic metric --replication-factor 3 --partitions 12
+      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --topic bet --replication-factor 3 --partitions 12
+      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --topic game --replication-factor 3 --partitions 12
+      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --topic price --replication-factor 3 --partitions 12
+      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --topic chat_post --replication-factor 3 --partitions 12
       sleep 1
       "
 
   kafdrop:
     image: obsidiandynamics/kafdrop:4.0.1
-    logging: *logging
+    #logging: *logging
     restart: always
     depends_on:
       kafka-init:
@@ -300,59 +184,6 @@ services:
       test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:9000 || exit 1"
       <<: *healthcheck
 
-  kafka-connect:
-    build:
-      dockerfile: ./kafkaconnect.Dockerfile
-    logging: *logging
-    restart: always
-    depends_on:
-      - kafka-schema-registry
-    environment:
-      CONNECT_BOOTSTRAP_SERVERS: "kafka-broker-1:9091,kafka-broker-2:9091,kafka-broker-3:9091"
-      CONNECT_GROUP_ID: "kafka-connect"
-      CONNECT_CONFIG_STORAGE_TOPIC: "kafka-connect-config"
-      CONNECT_OFFSET_STORAGE_TOPIC: "kafka-connect-offsets"
-      CONNECT_STATUS_STORAGE_TOPIC: "kafka-connect-status"
-      CONNECT_KEY_CONVERTER: "io.confluent.connect.avro.AvroConverter"
-      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: "http://kafka-schema-registry:8085"
-      CONNECT_VALUE_CONVERTER: "io.confluent.connect.avro.AvroConverter"
-      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: "http://kafka-schema-registry:8085"
-      CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
-    healthcheck:
-      test: "curl --fail --silent localhost:8083 | grep version || exit 1"
-      <<: *healthcheck
-
-  kafka-connect-init:
-    image: curlimages/curl
-    depends_on:
-      kafka-connect:
-        condition: service_healthy
-    volumes:
-      - ./kafkaconnect-main-service.json:/opt/kafkaconnect-main-service.json
-      - ./kafkaconnect-user-service.json:/opt/kafkaconnect-user-service.json
-    entrypoint: [ "/bin/sh", "-c" ]
-    command: |
-      "
-      set -x
-      sleep 1
-      curl --connect-timeout 5 --max-time 10 --retry 5 --retry-delay 0 --retry-max-time 40 -i -X POST -H "Accept:application/json" -H "Content-Type:application/json" http://kafka-connect:8083/connectors/ -d @/opt/kafkaconnect-main-service.json
-      curl --connect-timeout 5 --max-time 10 --retry 5 --retry-delay 0 --retry-max-time 40 -i -X POST -H "Accept:application/json" -H "Content-Type:application/json" http://kafka-connect:8083/connectors/ -d @/opt/kafkaconnect-user-service.json
-      " 
-
-  kafka-schema-registry:
-    image: confluentinc/cp-schema-registry
-    logging: *logging
-    restart: always
-    depends_on:
-      - kafka-zookeeper
-    environment:
-      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: "kafka-zookeeper:2181"
-      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'kafka-broker-1:9092,kafka-broker-2:9092,kafka-broker-3:9092'
-      SCHEMA_REGISTRY_HOST_NAME: kafka-schema-registry
-      SCHEMA_REGISTRY_LISTENERS: "http://kafka-schema-registry:8085"
-    expose:
-      - '8085'
-
   prometheus:
     image: prom/prometheus:v2.53.0
     logging: *logging
@@ -365,16 +196,6 @@ services:
       test: "wget --no-verbose --tries=1 --spider 127.0.0.1:9090 || exit 1"
       <<: *healthcheck
 
-  zipkin:
-    image: openzipkin/zipkin:3.4
-    logging: *logging
-    restart: always
-    ports:
-      - "9411:9411"
-    healthcheck:
-      test: "wget --no-verbose --tries=1 --spider 127.0.0.1:9411 || exit 1"
-      <<: *healthcheck
-
   grafana:
     image: grafana/grafana:10.4.4
     logging: *logging
@@ -383,59 +204,4 @@ services:
       - "3000:3000"
     healthcheck:
       test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:3000 || exit 1"
-      <<: *healthcheck
-
-  logstash:
-    image: logstash:8.14.1
-    volumes:
-      - ./logstash.conf:/etc/logstash/logstash.conf
-    command: logstash -f /etc/logstash/logstash.conf
-    restart: always
-    ports:
-      - "12201:12201/udp"
-    environment:
-      LS_JAVA_OPTS: '-Xms64m -Xmx512m'
-    healthcheck:
-      test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:9600 || exit 1"
-      <<: *healthcheck
-
-  elasticsearch:
-    image: elasticsearch:8.14.1
-    logging: *logging
-    restart: always
-    environment:
-      discovery.type: single-node
-      xpack.security.enabled: false
-      ES_JAVA_OPTS: '-Xms128m -Xmx1g'
-    expose:
-      - "9200"
-    healthcheck:
-      test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:9200 || exit 1"
-      <<: *healthcheck
-
-  #kibana:
-  #  image: kibana:8.14.1
-  #  logging: *logging
-  #  restart: always
-  #  ports:
-  #    - "5601:5601"
-  #  environment:
-  #    - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-  #  healthcheck:
-  #    test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:5601 || exit 1"
-  #    <<: *healthcheck
-
-  cadvisor:
-    image: google/cadvisor:v0.33.0
-    logging: *logging
-    restart: always
-    ports:
-      - "5777:8080"
-    volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:rw
-      - /sys:/sys:ro
-      - /var/lib/docker/:/var/lib/docker:ro
-    healthcheck:
-      test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:8080 || exit 1"
       <<: *healthcheck

@@ -18,6 +18,7 @@ import reactor.core.publisher.Mono;
 @RequestMapping("auth")
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public class AuthRest {
+    AuthService authService;
     ReplyingKafkaTemplate<String, Object, Object> replyingKafkaTemplate;
 
     @PostMapping(value = "login")

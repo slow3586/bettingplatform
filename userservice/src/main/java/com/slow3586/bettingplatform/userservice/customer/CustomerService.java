@@ -51,15 +51,4 @@ public class CustomerService {
             .map(Object::toString)
             .map(UUID::fromString);
     }
-
-    protected void register(AuthDto authDto) {
-        Mono.just(authDto)
-            .publishOn(Schedulers.boundedElastic())
-            .doOnNext((request) ->
-                customerRepository.save(
-                    CustomerEntity.builder()
-                        .userId(UUID.randomUUID())
-                        .build()))
-            .subscribe();
-    }
 }

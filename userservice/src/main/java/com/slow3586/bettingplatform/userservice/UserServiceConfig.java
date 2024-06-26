@@ -29,8 +29,10 @@ import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.context.WebSessionServerSecurityContextRepository;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 
 @Configuration
@@ -73,11 +75,11 @@ public class UserServiceConfig {
 
         ConcurrentKafkaListenerContainerFactory<String, Object> factory =
             new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConcurrency(4);
+        factory.setConcurrency(12);
         factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(
             Map.of(
                 ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBrokers,
-                ConsumerConfig.GROUP_ID_CONFIG, "main-service",
+                ConsumerConfig.GROUP_ID_CONFIG, "user-service",
                 ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
                 "schema.registry.url", kafkaSchemaRegistry
             ),
@@ -92,7 +94,6 @@ public class UserServiceConfig {
         return new KafkaTemplate<>(kafkaProducerFactory());
     }
 
-
     @Bean
     public ReplyingKafkaTemplate<String, Object, Object> kafkaReplyingTemplate(
         KafkaReplyErrorChecker kafkaReplyErrorChecker
@@ -100,10 +101,14 @@ public class UserServiceConfig {
         ConcurrentMessageListenerContainer<String, Object> container =
             kafkaListenerContainerFactory().createContainer("auth.response");
 
+        container.getContainerProperties().setGroupId("user-service-" + UUID.randomUUID());
+
         ReplyingKafkaTemplate<String, Object, Object> template = new ReplyingKafkaTemplate<>(
             kafkaProducerFactory(),
             container);
         template.setReplyErrorChecker(kafkaReplyErrorChecker);
+        template.setSharedReplyTopic(true);
+        template.setDefaultReplyTimeout(Duration.ofSeconds(30));
 
         return template;
     }

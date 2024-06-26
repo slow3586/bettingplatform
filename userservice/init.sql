@@ -11,9 +11,10 @@ CREATE TABLE auth
 
 CREATE TABLE customer
 (
-    id      uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-    user_id uuid UNIQUE                                NOT NULL,
-    name    varchar(1000)                              NOT NULL,
-    balance double precision                           NOT NULL,
-    status  varchar(1000)                              NOT NULL
+    id          uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+    user_id     uuid UNIQUE                                NOT NULL,
+    name        varchar(1000)                              NOT NULL,
+    balance     double precision                           NOT NULL,
+    status      varchar(1000)                              NOT NULL,
+    has_premium boolean                                    NOT NULL
 );

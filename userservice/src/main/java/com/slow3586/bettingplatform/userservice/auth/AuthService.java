@@ -39,47 +39,49 @@ public class AuthService {
 
     @KafkaHandler
     public String login(LoginRequest loginRequest) {
-        return Mono.just(loginRequest)
-            .publishOn(Schedulers.boundedElastic())
-            .mapNotNull(request -> authRepository.findByLogin(request.getLogin()))
-            .filter(authEntity -> passwordEncoder.matches(
+        AuthEntity authEntity = authRepository.findByLogin(loginRequest.getLogin());
+        if (authEntity != null) {
+            if (passwordEncoder.matches(
                 loginRequest.getPassword(),
-                authEntity.getPassword()))
-            .map(authEntity -> this.generateToken(authEntity.getUserId()))
-            .switchIfEmpty(Mono.error(new IllegalArgumentException("Incorrect username or password")))
-            .block(Duration.ofMinutes(1));
+                authEntity.getPassword())
+            ) {
+                return this.generateToken(authEntity.getUserId());
+            }
+        }
+        throw new IllegalArgumentException("Incorrect username or password");
     }
 
     @KafkaHandler
     protected UUID register(RegisterRequest registerRequest) {
-        return Mono.just(registerRequest)
-            .publishOn(Schedulers.boundedElastic())
-            .filter(request -> !authRepository.existsByLogin(request.getEmail()))
-            .switchIfEmpty(Mono.error(new IllegalArgumentException("Email is already taken")))
-            .map((request) ->
-                authRepository.save(
-                    AuthEntity.builder()
-                        .userId(UUID.randomUUID())
-                        .login(request.getEmail())
-                        .email(registerRequest.getEmail())
-                        .role("user")
-                        .status("new")
-                        .password(passwordEncoder.encode(request.getPassword()))
-                        .build()
-                ).getUserId())
-            .onErrorStop()
-            .map((userId) ->
-                customerRepository.save(
-                    CustomerEntity.builder()
-                        .userId(userId)
-                        .balance(0)
-                        .hasPremium(false)
-                        .status("new")
-                        .build()
-                ).getUserId())
-            .onErrorContinue((e, userId) ->
-                authRepository.deleteByUserId((UUID) userId))
-            .block(Duration.ofMinutes(1));
+        if (authRepository.existsByLogin(registerRequest.getEmail())) {
+            throw new IllegalArgumentException("Email address already in use");
+        }
+
+        final AuthEntity authEntity = authRepository.save(
+            AuthEntity.builder()
+                .userId(UUID.randomUUID())
+                .login(registerRequest.getEmail())
+                .email(registerRequest.getEmail())
+                .role("user")
+                .status("new")
+                .password(passwordEncoder.encode(registerRequest.getPassword()))
+                .build());
+
+        try {
+            customerRepository.save(
+                CustomerEntity.builder()
+                    .name(authEntity.getLogin())
+                    .userId(authEntity.getUserId())
+                    .balance(0)
+                    .status("normal")
+                    .hasPremium(false)
+                    .build());
+        } catch (Exception e) {
+            authRepository.delete(authEntity);
+            throw e;
+        }
+
+        return authEntity.getUserId();
     }
 
     @KafkaHandler

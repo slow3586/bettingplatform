@@ -12,11 +12,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 public class UserServiceExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity exception(Exception e) {
-        String body = e.getClass().getSimpleName() + ": " + e.getMessage();
-        log.error("#rest: {}", body, e);
         return ResponseEntity
             .status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(body);
+            .body(e.getClass().getSimpleName() + ": " + e.getMessage());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

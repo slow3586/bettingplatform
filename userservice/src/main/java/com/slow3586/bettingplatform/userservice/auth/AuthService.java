@@ -10,8 +10,13 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.StoreQueryParameters;
+import org.apache.kafka.streams.state.QueryableStoreTypes;
+import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 import org.springframework.kafka.annotation.KafkaHandler;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.config.StreamsBuilderFactoryBean;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -36,16 +41,26 @@ public class AuthService {
     AuthProperties authProperties;
     PasswordEncoder passwordEncoder;
     SecretKey secretKey;
+    StreamsBuilderFactoryBean streamsBuilderFactoryBean;
 
     @KafkaHandler
     public String login(LoginRequest loginRequest) {
-        AuthEntity authEntity = authRepository.findByLogin(loginRequest.getLogin());
-        if (authEntity != null) {
+        KafkaStreams kafkaStreams = streamsBuilderFactoryBean.getKafkaStreams();
+        ReadOnlyKeyValueStore<String, String> loginUserIdStore =
+            kafkaStreams.store(StoreQueryParameters.fromNameAndType(
+                "user-service.table.auth.login.user_id",
+                QueryableStoreTypes.keyValueStore()));
+        String userId = loginUserIdStore.get(loginRequest.getLogin());
+        if (userId != null) {
+            ReadOnlyKeyValueStore<String, String> loginPasswordStore =
+                kafkaStreams.store(StoreQueryParameters.fromNameAndType(
+                    "user-service.table.auth.login.password",
+                    QueryableStoreTypes.keyValueStore()));
             if (passwordEncoder.matches(
                 loginRequest.getPassword(),
-                authEntity.getPassword())
+                loginPasswordStore.get(loginRequest.getLogin()))
             ) {
-                return this.generateToken(authEntity.getUserId());
+                return this.generateToken(UUID.fromString(userId));
             }
         }
         throw new IllegalArgumentException("Incorrect username or password");
@@ -64,7 +79,7 @@ public class AuthService {
                 .email(registerRequest.getEmail())
                 .role("user")
                 .status("new")
-                .password(passwordEncoder.encode(registerRequest.getPassword()))
+                .password(registerRequest.getPassword())
                 .build());
 
         try {

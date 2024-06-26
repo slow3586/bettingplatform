@@ -80,12 +80,13 @@ public class UserServiceConfig {
             Map.of(
                 ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBrokers,
                 ConsumerConfig.GROUP_ID_CONFIG, "user-service",
-                ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
-                "schema.registry.url", kafkaSchemaRegistry
+                ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class
             ),
             new StringDeserializer(),
             jsonDeserializer));
-        factory.setReplyTemplate(kafkaTemplate());
+
+        KafkaTemplate<String, Object> replyTemplate = kafkaTemplate();
+        factory.setReplyTemplate(replyTemplate);
         return factory;
     }
 

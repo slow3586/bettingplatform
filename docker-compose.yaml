@@ -28,6 +28,13 @@ x-kafka-env: &kafka-env
   KAFKA_HEAP_OPTS: -Xms64M -Xmx512M
 
 services:
+  nginx:
+    image: nginx:1.13
+    ports:
+      - "8081:80"
+    volumes:
+      - './nginx.conf:/etc/nginx/nginx.conf'
+
   user-service:
     build: ./userservice
     #logging: *logging
@@ -56,8 +63,25 @@ services:
     environment:
       <<: *spring-env
       spring.datasource.url: 'jdbc:postgresql://user-service-db:5432/postgres'
-    ports:
-      - "8092:8080"
+    expose:
+      - "8080"
+    healthcheck:
+      test: "wget --no-verbose --tries=1 --spider 127.0.0.1:8080/actuator/health || exit 1"
+      <<: *healthcheck
+
+  user-service-2:
+    build: ./userservice
+    #logging: *logging
+    depends_on:
+      kafdrop:
+        condition: service_healthy
+      user-service-db:
+        condition: service_healthy
+    environment:
+      <<: *spring-env
+      spring.datasource.url: 'jdbc:postgresql://user-service-db:5432/postgres'
+    expose:
+      - "8080"
     healthcheck:
       test: "wget --no-verbose --tries=1 --spider 127.0.0.1:8080/actuator/health || exit 1"
       <<: *healthcheck
@@ -158,14 +182,15 @@ services:
       "
       set -x
       sleep 1
-      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --topic logs --replication-factor 3 --partitions 12
-      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --topic trace --replication-factor 3 --partitions 12
-      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --topic metric --replication-factor 3 --partitions 12
-      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --topic bet --replication-factor 3 --partitions 12
-      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --topic game --replication-factor 3 --partitions 12
-      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --topic price --replication-factor 3 --partitions 12
-      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --topic chat_post --replication-factor 3 --partitions 12
-      sleep 1
+      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic user-service.table.auth.login.password
+      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic user-service.table.auth.login.user_id
+      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic logs
+      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic trace
+      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic metric
+      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic bet
+      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic game
+      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic price
+      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic chat_post
       "
 
   kafdrop:
@@ -175,6 +200,8 @@ services:
     depends_on:
       kafka-init:
         condition: service_completed_successfully
+      kafka-connect-init:
+        condition: service_completed_successfully
     ports:
       - "9000:9000"
     environment:
@@ -183,6 +210,41 @@ services:
     healthcheck:
       test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:9000 || exit 1"
       <<: *healthcheck
+
+  kafka-connect:
+    build:
+      dockerfile: ./kafkaconnect.Dockerfile
+    logging: *logging
+    restart: always
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: "kafka-broker-1:9091,kafka-broker-2:9091,kafka-broker-3:9091"
+      CONNECT_GROUP_ID: "kafka-connect"
+      CONNECT_CONFIG_STORAGE_TOPIC: "kafka-connect-config"
+      CONNECT_OFFSET_STORAGE_TOPIC: "kafka-connect-offsets"
+      CONNECT_STATUS_STORAGE_TOPIC: "kafka-connect-status"
+      CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
+    healthcheck:
+      test: "curl --fail --silent localhost:8083 | grep version || exit 1"
+      <<: *healthcheck
+
+  kafka-connect-init:
+    image: curlimages/curl
+    depends_on:
+      kafka-connect:
+        condition: service_healthy
+    volumes:
+      - ./kafkaconnect-main-service.json:/opt/kafkaconnect-main-service.json
+      - ./kafkaconnect-user-service.json:/opt/kafkaconnect-user-service.json
+    entrypoint: [ "/bin/sh", "-c" ]
+    command: |
+      "
+      set -x
+      sleep 1
+      curl --connect-timeout 5 --max-time 10 --retry 5 --retry-delay 0 --retry-max-time 40 -i -X POST -H "Accept:application/json" -H "Content-Type:application/json" http://kafka-connect:8083/connectors/ -d @/opt/kafkaconnect-main-service.json
+      curl --connect-timeout 5 --max-time 10 --retry 5 --retry-delay 0 --retry-max-time 40 -i -X POST -H "Accept:application/json" -H "Content-Type:application/json" http://kafka-connect:8083/connectors/ -d @/opt/kafkaconnect-user-service.json
+      " 
 
   prometheus:
     image: prom/prometheus:v2.53.0

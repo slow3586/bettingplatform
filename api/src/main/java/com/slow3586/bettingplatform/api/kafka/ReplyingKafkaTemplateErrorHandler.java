@@ -18,6 +18,7 @@ public class ReplyingKafkaTemplateErrorHandler implements ConsumerAwareListenerE
         ListenerExecutionFailedException exception,
         Consumer<?, ?> consumer
     ) {
+        log.error("#handle", exception);
         return MessageBuilder.fromMessage(message)
             .setHeader("exception.class", exception.getCause().getClass().getSimpleName())
             .setHeader("exception.message", exception.getCause().getMessage())

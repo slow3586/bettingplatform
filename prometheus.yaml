@@ -40,3 +40,9 @@ scrape_configs:
     static_configs:
       - targets:
           - 'cadvisor:8080'
+  - job_name: 'kafka'
+    static_configs:
+      - targets:
+          - kafka-broker-1:7072
+          - kafka-broker-2:7072
+          - kafka-broker-3:7072

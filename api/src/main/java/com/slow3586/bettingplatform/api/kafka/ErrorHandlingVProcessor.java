@@ -26,7 +26,7 @@ public abstract class ErrorHandlingVProcessor<VIn, VOut> extends ContextualFixed
     @Override
     public void process(FixedKeyRecord<String, VIn> record) {
         try {
-            log.info("#ErrorHandlingVProcessor: {}", record);
+            //log.info("#ErrorHandlingVProcessor: {}", record);
             this.context().forward(record.withValue(this.handle(record)));
         } catch (Exception e) {
             log.error("#ErrorHandlingKVProcessor: {}", record, e);

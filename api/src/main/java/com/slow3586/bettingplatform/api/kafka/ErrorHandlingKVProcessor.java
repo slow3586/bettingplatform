@@ -30,7 +30,7 @@ public abstract class ErrorHandlingKVProcessor<VIn, VOut> extends ContextualProc
     @Override
     public void process(Record<String, VIn> record) {
         try {
-            log.info("#ErrorHandlingKVProcessor: {}", record);
+            //log.info("#ErrorHandlingKVProcessor: {}", record);
             KeyValue<String, VOut> handle = this.handle(record);
             this.context().forward(record.withKey(handle.key).withValue(handle.value));
         } catch (Exception e) {

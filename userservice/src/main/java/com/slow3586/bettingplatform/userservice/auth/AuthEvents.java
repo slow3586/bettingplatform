@@ -15,11 +15,8 @@ import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Branched;
-import org.apache.kafka.streams.kstream.Consumed;
-import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Materialized;
-import org.apache.kafka.streams.kstream.Produced;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,8 +27,6 @@ import javax.crypto.SecretKey;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
-import java.util.Map;
-import java.util.Objects;
 
 @Configuration
 @RequiredArgsConstructor
@@ -109,7 +104,7 @@ public class AuthEvents {
                                 throw new IllegalArgumentException("Unknown user!");
                             }
 
-                            if (Instant.now().isBefore(claims.getExpiration().toInstant())) {
+                            if (Instant.now().isAfter(claims.getExpiration().toInstant())) {
                                 throw new IllegalArgumentException("Token expired!");
                             }
 

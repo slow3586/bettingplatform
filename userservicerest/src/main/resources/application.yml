@@ -3,11 +3,6 @@ spring:
     name: "user-service"
   main:
     web-application-type: reactive
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    url: 'jdbc:postgresql://localhost:5434/postgres'
-    username: postgres
-    password: postgres
 management:
   endpoints:
     web:

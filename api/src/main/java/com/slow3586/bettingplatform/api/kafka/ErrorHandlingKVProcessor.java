@@ -2,16 +2,12 @@ package com.slow3586.bettingplatform.api.kafka;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KeyValue;
-import org.apache.kafka.streams.processor.api.ContextualFixedKeyProcessor;
 import org.apache.kafka.streams.processor.api.ContextualProcessor;
-import org.apache.kafka.streams.processor.api.FixedKeyProcessorSupplier;
-import org.apache.kafka.streams.processor.api.FixedKeyRecord;
 import org.apache.kafka.streams.processor.api.ProcessorSupplier;
 import org.apache.kafka.streams.processor.api.Record;
 import org.springframework.kafka.support.KafkaHeaders;
 
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.util.function.Function;
 
 @Slf4j

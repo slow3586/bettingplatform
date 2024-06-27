@@ -1,44 +1,53 @@
-package com.slow3586.bettingplatform.userservice;
+package com.slow3586.bettingplatform.userservice.rest;
 
+import com.slow3586.bettingplatform.api.kafka.KafkaReplyErrorChecker;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.apache.kafka.streams.StreamsConfig;
-import org.apache.kafka.streams.processor.WallclockTimestampExtractor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.kafka.annotation.KafkaStreamsDefaultConfiguration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
-import org.springframework.kafka.config.KafkaStreamsConfiguration;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
+import org.springframework.kafka.requestreply.ReplyingKafkaTemplate;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
-import org.springframework.kafka.support.serializer.JsonSerde;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
-import java.util.HashMap;
+import javax.crypto.SecretKey;
+import java.time.Duration;
 import java.util.Map;
+import java.util.UUID;
 
 @Configuration
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
-public class UserServiceConfig {
+public class UserServiceRestConfig {
     @NonFinal
     @Value("${KAFKA_BROKERS:localhost:9092}")
     String kafkaBrokers;
     @NonFinal
     @Value("${KAFKA_SCHEMA_REGISTRY_URL:http://localhost:8095}")
     String kafkaSchemaRegistry;
+    @NonFinal
+    @Value("${SECRET_KEY}")
+    String secretKey;
+
+    @Bean
+    public SecretKey secretKey() {
+        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
+    }
 
     @Bean
     public ProducerFactory<String, Object> kafkaProducerFactory() {
@@ -50,19 +59,6 @@ public class UserServiceConfig {
             new JsonSerializer<>());
     }
 
-    @Bean(name = KafkaStreamsDefaultConfiguration.DEFAULT_STREAMS_CONFIG_BEAN_NAME)
-    public KafkaStreamsConfiguration kafkaStreamsConfiguration() {
-        Map<String, Object> props = new HashMap<>();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "user-service-streams");
-        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBrokers);
-        props.put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG, "2000");
-        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
-        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, JsonSerde.class.getName());
-        props.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
-        props.put(StreamsConfig.DEFAULT_TIMESTAMP_EXTRACTOR_CLASS_CONFIG, WallclockTimestampExtractor.class.getName());
-        return new KafkaStreamsConfiguration(props);
-    }
-
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory =
@@ -71,7 +67,7 @@ public class UserServiceConfig {
         factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(
             Map.of(
                 ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBrokers,
-                ConsumerConfig.GROUP_ID_CONFIG, "user-service",
+                ConsumerConfig.GROUP_ID_CONFIG, "user-service-rest",
                 ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class,
                 ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class,
                 ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, StringDeserializer.class,
@@ -89,5 +85,29 @@ public class UserServiceConfig {
     @Bean
     public KafkaTemplate<String, Object> kafkaTemplate() {
         return new KafkaTemplate<>(kafkaProducerFactory());
+    }
+
+    @Bean
+    public ReplyingKafkaTemplate<String, Object, Object> kafkaReplyingTemplate(
+        KafkaReplyErrorChecker kafkaReplyErrorChecker
+    ) {
+        ConcurrentMessageListenerContainer<String, Object> container =
+            kafkaListenerContainerFactory()
+                .createContainer(
+                    "auth.response",
+                    "customer.response",
+                    "order.response",
+                    "payment.response");
+
+        container.getContainerProperties().setGroupId("user-service-" + UUID.randomUUID());
+
+        ReplyingKafkaTemplate<String, Object, Object> template = new ReplyingKafkaTemplate<>(
+            kafkaProducerFactory(),
+            container);
+        template.setReplyErrorChecker(kafkaReplyErrorChecker);
+        template.setSharedReplyTopic(true);
+        template.setDefaultReplyTimeout(Duration.ofSeconds(30));
+
+        return template;
     }
 }

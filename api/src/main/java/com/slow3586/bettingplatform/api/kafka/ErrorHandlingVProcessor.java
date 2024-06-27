@@ -7,7 +7,6 @@ import org.apache.kafka.streams.processor.api.FixedKeyRecord;
 import org.springframework.kafka.support.KafkaHeaders;
 
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.util.function.Function;
 
 @Slf4j

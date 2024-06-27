@@ -11,6 +11,7 @@
         <module>api</module>
         <module>mainservice</module>
         <module>userservice</module>
+        <module>userservicerest</module>
         <module>frontendservice</module>
         <module>websocketservice</module>
         <module>auditservice</module>

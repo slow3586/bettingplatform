@@ -16,8 +16,9 @@ x-healthcheck: &healthcheck
 x-spring-env: &spring-env
   KAFKA_BROKERS: kafka-broker-1:9092,kafka-broker-2:9092,kafka-broker-3:9092
   management.zipkin.tracing.endpoint: http://zipkin:9411/api/v2/spans
-  JAVA_OPTS: -Xms64M -Xmx1024M
+  JAVA_OPTS: -Xms64M -Xmx2048M
   server.tomcat.threads.max: 500
+  SECRET_KEY: qweqweqweqweqweqweqweqweqweqweqrqwrqwrtweqtewqtweq
 
 x-kafka-env: &kafka-env
   KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
@@ -39,38 +40,7 @@ x-kafka-zookeeper-env: &kafka-zookeeper-env
   ZOOKEEPER_SERVERS: kafka-zookeeper-1:2888:3888;kafka-zookeeper-2:2888:3888
 
 services:
-  nginx:
-    image: nginx:1.27.0-alpine
-    logging: *logging
-    depends_on:
-      user-service-1:
-        condition: service_healthy
-      user-service-2:
-        condition: service_healthy
-      user-service-3:
-        condition: service_healthy
-    ports:
-      - "8081:80"
-    volumes:
-      - './nginx.conf:/etc/nginx/nginx.conf'
-
-  user-service-1:
-    build: ./userservice
-    logging: *logging
-    depends_on:
-      kafdrop:
-        condition: service_healthy
-      user-service-db:
-        condition: service_healthy
-    environment:
-      <<: *spring-env
-      spring.datasource.url: 'jdbc:postgresql://user-service-db:5432/postgres'
-    ports: ["8082:8080"]
-    healthcheck:
-      test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:8080/actuator/health || exit 1"
-      <<: *healthcheck
-
-  user-service-2:
+  user-service:
     build: ./userservice
     logging: *logging
     depends_on:
@@ -82,22 +52,27 @@ services:
       <<: *spring-env
       spring.datasource.url: 'jdbc:postgresql://user-service-db:5432/postgres'
     expose: ["8080"]
+    deploy:
+      mode: replicated
+      replicas: 3
+      endpoint_mode: vip
     healthcheck:
       test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:8080/actuator/health || exit 1"
       <<: *healthcheck
 
-  user-service-3:
-    build: ./userservice
+  user-service-rest:
+    build: ./userservicerest
     logging: *logging
     depends_on:
       kafdrop:
         condition: service_healthy
-      user-service-db:
-        condition: service_healthy
     environment:
       <<: *spring-env
-      spring.datasource.url: 'jdbc:postgresql://user-service-db:5432/postgres'
-    expose: ["8080"]
+    ports: [ "8082-8090:8080" ]
+    deploy:
+      mode: replicated
+      replicas: 2
+      endpoint_mode: vip
     healthcheck:
       test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:8080/actuator/health || exit 1"
       <<: *healthcheck
@@ -147,6 +122,8 @@ services:
     logging: *logging
     depends_on:
       kafka-zookeeper-1:
+        condition: service_healthy
+      kafka-zookeeper-2:
         condition: service_healthy
     expose: ["9091", "9092"]
     environment:

@@ -1,4 +1,4 @@
-package com.slow3586.bettingplatform.userservice.rest.order;
+package com.slow3586.bettingplatform.userservice.payment;
 
 import lombok.Builder;
 import lombok.Data;
@@ -10,11 +10,12 @@ import java.util.UUID;
 
 @Data
 @Builder
-@Table("order")
-public class OrderEntity {
+@Table("payment")
+public class PaymentEntity {
     @Id
     UUID id;
     String login;
-    String product;
     Instant time;
+    String source;
+    double value;
 }

@@ -1,8 +1,8 @@
-package com.slow3586.bettingplatform.userservice.rest.auth;
+package com.slow3586.bettingplatform.userservice.auth;
 
 import com.slow3586.bettingplatform.api.userservice.dto.RegisterRequest;
-import com.slow3586.bettingplatform.userservice.rest.customer.CustomerEntity;
-import com.slow3586.bettingplatform.userservice.rest.customer.CustomerRepository;
+import com.slow3586.bettingplatform.userservice.customer.CustomerEntity;
+import com.slow3586.bettingplatform.userservice.customer.CustomerRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;

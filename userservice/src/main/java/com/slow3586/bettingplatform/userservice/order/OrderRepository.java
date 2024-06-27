@@ -1,4 +1,4 @@
-package com.slow3586.bettingplatform.userservice.rest.payment;
+package com.slow3586.bettingplatform.userservice.order;
 
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
@@ -8,5 +8,5 @@ import java.util.UUID;
 
 @Repository
 @Transactional
-public interface PaymentRepository extends CrudRepository<PaymentEntity, UUID> {
+public interface OrderRepository extends CrudRepository<OrderEntity, UUID> {
 }

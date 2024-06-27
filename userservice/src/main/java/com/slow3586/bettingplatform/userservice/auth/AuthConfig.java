@@ -1,4 +1,4 @@
-package com.slow3586.bettingplatform.userservice.rest.auth;
+package com.slow3586.bettingplatform.userservice.auth;
 
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;

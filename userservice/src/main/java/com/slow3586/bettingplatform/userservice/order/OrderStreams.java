@@ -1,4 +1,4 @@
-package com.slow3586.bettingplatform.userservice.rest.order;
+package com.slow3586.bettingplatform.userservice.order;
 
 import com.slow3586.bettingplatform.api.kafka.ErrorHandlingVProcessor;
 import com.slow3586.bettingplatform.api.kafka.KafkaStreamsUtils;
@@ -7,14 +7,11 @@ import com.slow3586.bettingplatform.api.userservice.dto.OrderRequest;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 

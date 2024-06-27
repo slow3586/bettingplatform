@@ -1,4 +1,4 @@
-package com.slow3586.bettingplatform.userservice.rest.order;
+package com.slow3586.bettingplatform.userservice.order;
 
 import com.slow3586.bettingplatform.api.mapstruct.IMapStructConfig;
 import com.slow3586.bettingplatform.api.mapstruct.IMapStructMapper;

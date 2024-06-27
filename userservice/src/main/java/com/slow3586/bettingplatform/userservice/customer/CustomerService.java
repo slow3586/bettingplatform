@@ -1,4 +1,4 @@
-package com.slow3586.bettingplatform.userservice.rest.customer;
+package com.slow3586.bettingplatform.userservice.customer;
 
 import com.slow3586.bettingplatform.api.userservice.dto.CustomerDto;
 import com.slow3586.bettingplatform.api.userservice.dto.PaymentDto;
@@ -6,7 +6,6 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.kafka.annotation.KafkaHandler;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.handler.annotation.SendTo;

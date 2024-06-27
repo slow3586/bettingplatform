@@ -1,11 +1,11 @@
-package com.slow3586.bettingplatform.userservice.rest.auth;
+package com.slow3586.bettingplatform.userservice.auth;
 
 import com.slow3586.bettingplatform.api.kafka.ErrorHandlingKVProcessor;
 import com.slow3586.bettingplatform.api.kafka.ErrorHandlingVProcessor;
 import com.slow3586.bettingplatform.api.kafka.KafkaStreamsUtils;
 import com.slow3586.bettingplatform.api.userservice.dto.AuthDto;
 import com.slow3586.bettingplatform.api.userservice.dto.LoginRequest;
-import com.slow3586.bettingplatform.userservice.rest.customer.CustomerRepository;
+import com.slow3586.bettingplatform.userservice.customer.CustomerRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import lombok.AccessLevel;

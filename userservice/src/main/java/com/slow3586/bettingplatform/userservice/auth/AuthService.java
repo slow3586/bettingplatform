@@ -13,82 +13,56 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.header.internals.RecordHeader;
+import org.apache.kafka.common.header.internals.RecordHeaders;
+import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StoreQueryParameters;
+import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.kstream.Consumed;
+import org.apache.kafka.streams.kstream.KTable;
+import org.apache.kafka.streams.kstream.Materialized;
+import org.apache.kafka.streams.kstream.Produced;
+import org.apache.kafka.streams.processor.api.ContextualFixedKeyProcessor;
+import org.apache.kafka.streams.processor.api.FixedKeyRecord;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
-import org.springframework.kafka.annotation.KafkaHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.config.StreamsBuilderFactoryBean;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.kafka.support.serializer.JsonSerde;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
-import java.util.UUID;
+import java.util.List;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
-@SendTo("auth.response")
-@KafkaListener(topics = "auth.request", errorHandler = "replyingKafkaTemplateErrorHandler")
 public class AuthService {
     AuthRepository authRepository;
     CustomerRepository customerRepository;
     AuthProperties authProperties;
     PasswordEncoder passwordEncoder;
     SecretKey secretKey;
-    StreamsBuilderFactoryBean streamsBuilderFactoryBean;
-    @NonFinal
-    KafkaStreams kafkaStreams;
-    @NonFinal
-    ReadOnlyKeyValueStore<String, AuthDto> authStore;
 
-    @PostConstruct
-    public void init() {
-        new Thread(() -> {
-            try {
-                while (!streamsBuilderFactoryBean.isRunning()) {
-                    Thread.sleep(1000);
-                    log.info("Waiting for streams to start...");
-                }
-                kafkaStreams = streamsBuilderFactoryBean.getKafkaStreams();
-                authStore = kafkaStreams.store(
-                    StoreQueryParameters.fromNameAndType(
-                        "user-service.public.auth",
-                        QueryableStoreTypes.keyValueStore()));
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }).start();
-    }
-
-    @KafkaHandler
-    public String login(LoginRequest loginRequest) {
-        final AuthDto authDto = authStore.get(loginRequest.getLogin());
-
-        if (authDto != null
-            && passwordEncoder.matches(
-            loginRequest.getPassword(),
-            authDto.getPassword())
-        ) {
-            return this.generateToken(loginRequest.getLogin());
-        }
-
-        throw new IllegalArgumentException("Incorrect username or password");
-    }
-
-    @KafkaHandler
     @Transactional
+    @SendTo("auth.response")
+    @KafkaListener(topics = "auth.request", errorHandler = "replyingKafkaTemplateErrorHandler")
     protected String register(RegisterRequest registerRequest) {
-        if (authStore.get(registerRequest.getEmail()) != null) {
+        if (authRepository.existsByLogin(registerRequest.getEmail())) {
             throw new IllegalArgumentException("Email address already in use");
         }
 
@@ -110,33 +84,5 @@ public class AuthService {
                 .build());
 
         return login;
-    }
-
-    @KafkaHandler
-    public String token(String token) {
-        final Claims claims = Jwts.parser()
-            .verifyWith(secretKey)
-            .build()
-            .parseSignedClaims(token)
-            .getPayload();
-
-        if (Instant.now().isBefore(claims.getExpiration().toInstant())) {
-            if (authStore.get(claims.getSubject()) != null) {
-                return claims.getSubject();
-            }
-        }
-
-        throw new IllegalArgumentException("Expired or invalid token");
-    }
-
-    protected String generateToken(String login) {
-        return Jwts.builder()
-            .subject(login)
-            .expiration(Date.from(
-                Instant.now().plus(
-                    Duration.ofMinutes(
-                        authProperties.getExpirationMinutes()))))
-            .signWith(secretKey)
-            .compact();
     }
 }

@@ -190,6 +190,7 @@ services:
   kafka-init:
     image: confluentinc/cp-kafka:7.4.4
     logging: *logging
+    restart: no
     depends_on:
       kafka-broker-1:
         condition: service_healthy
@@ -202,6 +203,12 @@ services:
       "
       set -x
       sleep 1
+      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic auth.request
+      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic auth.response
+      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic auth.request.token
+      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic auth.request.login
+      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic order.request
+      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic order.response
       kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic user-service.public.auth --config cleanup.policy=compact
       kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic user-service.public.customer --config cleanup.policy=compact
       kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic user-service.public.order --config cleanup.policy=compact
@@ -252,6 +259,7 @@ services:
   kafka-connect-init:
     image: curlimages/curl
     logging: *logging
+    restart: no
     depends_on:
       kafka-connect:
         condition: service_healthy

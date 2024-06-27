@@ -14,8 +14,9 @@ import java.util.UUID;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CustomerDto {
-    UUID userId;
+    String login;
     String name;
-    String email;
     double balance;
+    String status;
+    boolean hasPremium;
 }

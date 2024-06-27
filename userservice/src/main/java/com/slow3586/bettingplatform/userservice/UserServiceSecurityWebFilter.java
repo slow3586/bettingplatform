@@ -1,6 +1,7 @@
 package com.slow3586.bettingplatform.userservice;
 
 import com.slow3586.bettingplatform.api.SecurityUtils;
+import com.slow3586.bettingplatform.userservice.auth.AuthRest;
 import com.slow3586.bettingplatform.userservice.auth.AuthService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,7 @@ import reactor.util.annotation.NonNull;
 @RequiredArgsConstructor
 @Slf4j
 public class UserServiceSecurityWebFilter implements WebFilter {
-    AuthService authService;
+    AuthRest authRest;
 
     @Override
     @NonNull
@@ -33,7 +34,7 @@ public class UserServiceSecurityWebFilter implements WebFilter {
             .map(l -> l.get(0))
             .filter(s -> s.startsWith(SecurityUtils.BEARER_PREFIX))
             .mapNotNull(s -> s.substring(SecurityUtils.BEARER_PREFIX.length()))
-            .map(authService::token)
+            .flatMap(authRest::token)
             .map(userId ->
                 new UsernamePasswordAuthenticationToken(
                     userId,

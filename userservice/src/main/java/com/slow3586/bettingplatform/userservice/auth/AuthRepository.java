@@ -9,4 +9,5 @@ import java.util.UUID;
 @Repository
 @Transactional
 public interface AuthRepository extends CrudRepository<AuthEntity, UUID> {
+    boolean existsByLogin(String login);
 }

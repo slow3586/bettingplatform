@@ -22,7 +22,11 @@ public class AuthRest {
 
     @PostMapping(value = "login")
     public Mono<Object> login(@RequestBody LoginRequest request) {
-        return this.sendAndReceive(request);
+        return KafkaRestUtils.sendAndReceive(
+            replyingKafkaTemplate,
+            "auth.request.login",
+            request.getLogin(),
+            request);
     }
 
     @PostMapping(value = "register")
@@ -32,7 +36,10 @@ public class AuthRest {
 
     @PostMapping(value = "token")
     public Mono<Object> token(@RequestBody String request) {
-        return this.sendAndReceive(request);
+        return KafkaRestUtils.sendAndReceive(
+            replyingKafkaTemplate,
+            "auth.request.token",
+            request);
     }
 
     protected Mono<Object> sendAndReceive(String key, Object object) {

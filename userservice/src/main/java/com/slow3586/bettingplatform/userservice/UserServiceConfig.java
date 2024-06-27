@@ -26,6 +26,7 @@ import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.requestreply.ReplyingKafkaTemplate;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
+import org.springframework.kafka.support.serializer.JsonSerde;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
 import java.time.Duration;
@@ -61,16 +62,14 @@ public class UserServiceConfig {
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBrokers);
         props.put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG, "2000");
         props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
-        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
+        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, JsonSerde.class.getName());
+        props.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
         props.put(StreamsConfig.DEFAULT_TIMESTAMP_EXTRACTOR_CLASS_CONFIG, WallclockTimestampExtractor.class.getName());
         return new KafkaStreamsConfiguration(props);
     }
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory() {
-        JsonDeserializer<Object> jsonDeserializer = new JsonDeserializer<>();
-        jsonDeserializer.addTrustedPackages("*");
-
         ConcurrentKafkaListenerContainerFactory<String, Object> factory =
             new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConcurrency(6);
@@ -81,10 +80,11 @@ public class UserServiceConfig {
                 ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class,
                 ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class,
                 ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, StringDeserializer.class,
-                ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, StringDeserializer.class
+                ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class,
+                JsonDeserializer.TRUSTED_PACKAGES, "*"
             ),
-            new StringDeserializer(),
-            jsonDeserializer));
+            new ErrorHandlingDeserializer<>(),
+            new ErrorHandlingDeserializer<>()));
 
         KafkaTemplate<String, Object> replyTemplate = kafkaTemplate();
         factory.setReplyTemplate(replyTemplate);

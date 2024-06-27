@@ -58,6 +58,8 @@ services:
     build: ./userservice
     logging: *logging
     depends_on:
+      kafdrop:
+        condition: service_healthy
       user-service-db:
         condition: service_healthy
     environment:
@@ -72,6 +74,8 @@ services:
     build: ./userservice
     logging: *logging
     depends_on:
+      kafdrop:
+        condition: service_healthy
       user-service-db:
         condition: service_healthy
     environment:
@@ -86,6 +90,8 @@ services:
     build: ./userservice
     logging: *logging
     depends_on:
+      kafdrop:
+        condition: service_healthy
       user-service-db:
         condition: service_healthy
     environment:
@@ -197,6 +203,9 @@ services:
       set -x
       sleep 1
       kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic user-service.public.auth --config cleanup.policy=compact
+      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic user-service.public.customer --config cleanup.policy=compact
+      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic user-service.public.order --config cleanup.policy=compact
+      kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic user-service.public.payment --config cleanup.policy=compact
       kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic trace
       kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic bet
       kafka-topics --bootstrap-server kafka-broker-1:9092 --create --if-not-exists --topic game
@@ -235,6 +244,7 @@ services:
       CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
+      CONNECT_HEAP_OPTS: -Xms64M -Xmx1024M
     healthcheck:
       test: "curl --fail --silent localhost:8083 | grep version || exit 1"
       <<: *healthcheck
@@ -252,44 +262,8 @@ services:
     command: |
       "
       set -x
-      curl --connect-timeout 5 --max-time 10 --retry 5 --retry-delay 0 --retry-max-time 40 -i -X POST -H "Accept:application/json" -H "Content-Type:application/json" http://kafka-connect:8083/connectors/ -d @/opt/kafkaconnect-main-service.json
+      sleep 5;
       curl --connect-timeout 5 --max-time 10 --retry 5 --retry-delay 0 --retry-max-time 40 -i -X POST -H "Accept:application/json" -H "Content-Type:application/json" http://kafka-connect:8083/connectors/ -d @/opt/kafkaconnect-user-service.json
-      " 
-
-  ksqldb:
-    image: confluentinc/ksqldb-server:0.29.0
-    expose: ["8088"]
-    environment:
-      KSQL_LISTENERS: "http://0.0.0.0:8088"
-      KSQL_BOOTSTRAP_SERVERS: "kafka-broker-1:9092,kafka-broker-2:9092,kafka-broker-3:9092"
-      KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: "true"
-      KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: "true"
-    healthcheck:
-      test: "curl --location --output /dev/null --silent --fail 127.0.0.1:8088/info || exit 1"
-      <<: *healthcheck
-
-  ksqldb-init:
-    image: confluentinc/ksqldb-cli:0.29.0
-    logging: *logging
-    depends_on:
-      ksqldb:
-        condition: service_healthy
-    entrypoint: [ "/bin/sh", "-c" ]
-    command: |
-      "
-      ksql http://ksqldb:8088 <<< \"
-      CREATE TABLE USER_SERVICE_AUTH_BY_LOGIN_INTERNAL (
-      login    varchar PRIMARY KEY,
-      password varchar,
-      role     varchar,
-      status   varchar
-      ) WITH(kafka_topic='user-service.public.auth', VALUE_FORMAT='JSON');
-      
-      CREATE TABLE USER_SERVICE_AUTH_BY_LOGIN
-      AS SELECT *
-      FROM USER_SERVICE_AUTH_BY_LOGIN_INTERNAL
-      EMIT CHANGES;
-      \"
       " 
 
   prometheus:

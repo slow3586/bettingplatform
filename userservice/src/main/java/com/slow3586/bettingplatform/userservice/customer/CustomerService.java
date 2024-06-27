@@ -1,48 +1,43 @@
 package com.slow3586.bettingplatform.userservice.customer;
 
 import com.slow3586.bettingplatform.api.userservice.dto.CustomerDto;
+import com.slow3586.bettingplatform.api.userservice.dto.PaymentDto;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.annotation.KafkaHandler;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.ReactiveSecurityContextHolder;
-import org.springframework.security.core.context.SecurityContext;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
-
-import java.util.UUID;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
+@SendTo("customer.response")
+@KafkaListener(topics = "customer.request", errorHandler = "replyingKafkaTemplateErrorHandler")
 public class CustomerService {
     CustomerRepository customerRepository;
     CustomerMapper customerMapper;
     KafkaTemplate<String, Object> kafkaTemplate;
 
-    public Mono<CustomerDto> getByCurrentUser() {
-        return this.getCurrentUserId().flatMap(this::getPrivateByUser);
-    }
-
-    public Mono<CustomerDto> getPrivateByUser(String login) {
-        return Mono.just(login)
-            .mapNotNull(customerRepository::findByLogin)
-            .flatMap(Mono::justOrEmpty)
+    @KafkaHandler
+    public CustomerDto getByUser(String login) {
+        return customerRepository.findByLogin(login)
             .map(customerMapper::toDto)
-            .switchIfEmpty(Mono.error(new RuntimeException("User not found")));
+            .orElseThrow();
     }
 
-    public Mono<CustomerDto> getPublicByUser(String login) {
-        return getPrivateByUser(login);
-    }
+    @KafkaListener(topics = "user-service.public.payment", errorHandler = "replyingKafkaTemplateErrorHandler")
+    public void paymentEvent(PaymentDto paymentDto) {
+        final CustomerEntity customer = customerRepository
+            .findByLogin(paymentDto.getLogin())
+            .orElseThrow();
 
-    public Mono<String> getCurrentUserId() {
-        return ReactiveSecurityContextHolder.getContext()
-            .mapNotNull(SecurityContext::getAuthentication)
-            .mapNotNull(Authentication::getPrincipal)
-            .map(Object::toString);
+        customer.setBalance(customer.getBalance() + paymentDto.getValue());
+
+        customerRepository.save(customer);
     }
 }

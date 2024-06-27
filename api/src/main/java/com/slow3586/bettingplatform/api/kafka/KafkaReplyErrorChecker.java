@@ -4,6 +4,7 @@ package com.slow3586.bettingplatform.api.kafka;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.Header;
+import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -16,12 +17,12 @@ public class KafkaReplyErrorChecker implements Function<ConsumerRecord<?, ?>, Ex
     public Exception apply(ConsumerRecord<?, ?> record) {
         try {
             final String excClass = Optional.ofNullable(
-                    record.headers().lastHeader("exception.class"))
+                    record.headers().lastHeader(KafkaHeaders.EXCEPTION_FQCN))
                 .map(Header::value)
                 .map(String::new)
                 .orElse(null);
             final String excMessage = Optional.ofNullable(
-                    record.headers().lastHeader("exception.message"))
+                    record.headers().lastHeader(KafkaHeaders.EXCEPTION_MESSAGE))
                 .map(Header::value)
                 .map(String::new)
                 .orElse("Unknown");

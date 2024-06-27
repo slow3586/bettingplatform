@@ -62,7 +62,7 @@ public class AuthService {
                 kafkaStreams = streamsBuilderFactoryBean.getKafkaStreams();
                 authStore = kafkaStreams.store(
                     StoreQueryParameters.fromNameAndType(
-                        "USER_SERVICE_AUTH_BY_LOGIN",
+                        "user-service.public.auth",
                         QueryableStoreTypes.keyValueStore()));
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -79,7 +79,7 @@ public class AuthService {
             loginRequest.getPassword(),
             authDto.getPassword())
         ) {
-            return this.generateToken(UUID.fromString(loginRequest.getLogin()));
+            return this.generateToken(loginRequest.getLogin());
         }
 
         throw new IllegalArgumentException("Incorrect username or password");
@@ -114,32 +114,29 @@ public class AuthService {
 
     @KafkaHandler
     public String token(String token) {
-        return Mono.just(token)
-            .publishOn(Schedulers.boundedElastic())
-            .flatMap(this::getTokenSubject)
-            .filter(login -> authStore.get(login) != null)
-            .block(Duration.ofMinutes(1));
+        final Claims claims = Jwts.parser()
+            .verifyWith(secretKey)
+            .build()
+            .parseSignedClaims(token)
+            .getPayload();
+
+        if (Instant.now().isBefore(claims.getExpiration().toInstant())) {
+            if (authStore.get(claims.getSubject()) != null) {
+                return claims.getSubject();
+            }
+        }
+
+        throw new IllegalArgumentException("Expired or invalid token");
     }
 
-    protected String generateToken(UUID id) {
+    protected String generateToken(String login) {
         return Jwts.builder()
-            .subject(id.toString())
+            .subject(login)
             .expiration(Date.from(
                 Instant.now().plus(
                     Duration.ofMinutes(
                         authProperties.getExpirationMinutes()))))
             .signWith(secretKey)
             .compact();
-    }
-
-    protected Mono<String> getTokenSubject(String token) {
-        return Mono.just(token)
-            .map(t -> Jwts.parser()
-                .verifyWith(secretKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload())
-            .filter(claims -> Instant.now().isBefore(claims.getExpiration().toInstant()))
-            .map(Claims::getSubject);
     }
 }

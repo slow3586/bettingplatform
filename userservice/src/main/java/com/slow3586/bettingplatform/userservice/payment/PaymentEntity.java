@@ -14,7 +14,7 @@ import java.util.UUID;
 public class PaymentEntity {
     @Id
     UUID id;
-    UUID userId;
+    String login;
     Instant time;
     String source;
     double value;

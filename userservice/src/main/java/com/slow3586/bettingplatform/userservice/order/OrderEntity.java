@@ -14,7 +14,7 @@ import java.util.UUID;
 public class OrderEntity {
     @Id
     UUID id;
-    UUID userId;
-    UUID itemId;
+    String login;
+    String product;
     Instant time;
 }

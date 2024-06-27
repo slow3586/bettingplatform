@@ -16,9 +16,8 @@ import java.util.UUID;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PaymentDto {
     UUID id;
-    UUID userId;
-    Instant paidAt;
-    Instant processedAt;
+    String login;
+    Instant time;
     String source;
     double value;
 }

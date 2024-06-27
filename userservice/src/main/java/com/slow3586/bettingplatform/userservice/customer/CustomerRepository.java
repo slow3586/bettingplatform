@@ -11,5 +11,4 @@ import java.util.UUID;
 @Transactional
 public interface CustomerRepository extends CrudRepository<CustomerEntity, UUID> {
     Optional<CustomerEntity> findByLogin(String login);
-    void deleteByLogin(String login);
 }

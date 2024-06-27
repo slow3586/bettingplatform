@@ -27,12 +27,20 @@ public class AuthRest {
 
     @PostMapping(value = "register")
     public Mono<Object> register(@RequestBody RegisterRequest request) {
-        return this.sendAndReceive(request);
+        return this.sendAndReceive(request.getEmail(), request);
     }
 
     @PostMapping(value = "token")
     public Mono<Object> token(@RequestBody String request) {
         return this.sendAndReceive(request);
+    }
+
+    protected Mono<Object> sendAndReceive(String key, Object object) {
+        return KafkaRestUtils.sendAndReceive(
+            replyingKafkaTemplate,
+            "auth.request",
+            key,
+            object);
     }
 
     protected Mono<Object> sendAndReceive(Object object) {

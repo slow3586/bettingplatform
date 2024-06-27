@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.springframework.kafka.listener.ConsumerAwareListenerErrorHandler;
 import org.springframework.kafka.listener.ListenerExecutionFailedException;
+import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
@@ -20,8 +21,8 @@ public class ReplyingKafkaTemplateErrorHandler implements ConsumerAwareListenerE
     ) {
         log.error("#handle", exception);
         return MessageBuilder.fromMessage(message)
-            .setHeader("exception.class", exception.getCause().getClass().getSimpleName())
-            .setHeader("exception.message", exception.getCause().getMessage())
+            .setHeader(KafkaHeaders.EXCEPTION_FQCN, exception.getCause().getClass().getSimpleName())
+            .setHeader(KafkaHeaders.EXCEPTION_MESSAGE, exception.getCause().getMessage())
             .build();
     }
 }

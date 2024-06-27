@@ -10,5 +10,4 @@ import java.util.UUID;
 @Repository
 @Transactional
 public interface PaymentRepository extends CrudRepository<PaymentEntity, UUID> {
-    List<PaymentEntity> findAllByUserId(UUID userId);
 }

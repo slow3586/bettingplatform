@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
 import java.util.UUID;
 
 @Data
@@ -16,9 +15,6 @@ import java.util.UUID;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class OrderDto {
     UUID id;
-    UUID userId;
-    Instant paidAt;
-    Instant processedAt;
-    String source;
-    double value;
+    String login;
+    String product;
 }

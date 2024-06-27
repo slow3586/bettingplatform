@@ -18,4 +18,19 @@ public class KafkaRestUtils {
                         record)))
             .map(ConsumerRecord::value);
     }
+    
+    public static Mono<Object> sendAndReceive(
+        ReplyingKafkaTemplate<String, Object, Object> kafkaTemplate,
+        String topic,
+        String key,
+        Object record
+    ) {
+        return Mono.fromFuture(
+                kafkaTemplate.sendAndReceive(
+                    new ProducerRecord<>(
+                        topic,
+                        key,
+                        record)))
+            .map(ConsumerRecord::value);
+    }
 }

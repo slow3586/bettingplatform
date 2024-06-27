@@ -13,12 +13,18 @@
     "plugin.name": "pgoutput",
     "key.converter.schemas.enable": "false",
     "value.converter.schemas.enable": "false",
-    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
     "value.converter": "org.apache.kafka.connect.json.JsonConverter",
-    "transforms": "unwrap",
+    "transforms": "unwrap,ValueToKey,extractString",
     "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
     "transforms.unwrap.drop.tombstones": "true",
     "transforms.unwrap.delete.handling.mode": "none",
-    "topic.creation.default.cleanup.policy": "compact"
+    "transforms.ValueToKey.type": "org.apache.kafka.connect.transforms.ValueToKey",
+    "transforms.ValueToKey.fields": "login",
+    "transforms.extractString.type": "org.apache.kafka.connect.transforms.ExtractField$Key",
+    "transforms.extractString.field": "login",
+    "topic.creation.default.cleanup.policy": "compact",
+    "topic.creation.default.replication.factor": 3,
+    "topic.creation.default.partitions": 12
   }
 }

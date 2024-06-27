@@ -24,6 +24,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.requestreply.ReplyingKafkaTemplate;
+import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
@@ -72,12 +73,15 @@ public class UserServiceConfig {
 
         ConcurrentKafkaListenerContainerFactory<String, Object> factory =
             new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConcurrency(12);
+        factory.setConcurrency(6);
         factory.setConsumerFactory(new DefaultKafkaConsumerFactory<>(
             Map.of(
                 ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaBrokers,
                 ConsumerConfig.GROUP_ID_CONFIG, "user-service",
-                ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class
+                ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class,
+                ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class,
+                ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, StringDeserializer.class,
+                ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, StringDeserializer.class
             ),
             new StringDeserializer(),
             jsonDeserializer));
@@ -97,7 +101,12 @@ public class UserServiceConfig {
         KafkaReplyErrorChecker kafkaReplyErrorChecker
     ) {
         ConcurrentMessageListenerContainer<String, Object> container =
-            kafkaListenerContainerFactory().createContainer("auth.response");
+            kafkaListenerContainerFactory()
+                .createContainer(
+                    "auth.response",
+                    "customer.response",
+                    "order.response",
+                    "payment.response");
 
         container.getContainerProperties().setGroupId("user-service-" + UUID.randomUUID());
 

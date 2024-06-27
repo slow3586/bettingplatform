@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,7 +20,6 @@ import java.util.UUID;
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public class BetService {
     BetRepository betRepository;
-    KafkaTemplate<String, Object> kafkaTemplate;
     BetMapper betMapper;
 
     public List<BetDto> getByCurrentUser() {
@@ -46,7 +44,6 @@ public class BetService {
 
     protected UUID save(BetDto betDto) {
         final BetEntity save = betRepository.save(betMapper.toEntity(betDto));
-        kafkaTemplate.send("bet", betMapper.toDto(save));
         return save.getId();
     }
 

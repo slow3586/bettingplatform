@@ -12,22 +12,10 @@
   "__elements": {},
   "__requires": [
     {
-      "type": "panel",
-      "id": "bargauge",
-      "name": "Bar gauge",
-      "version": ""
-    },
-    {
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
       "version": "10.4.4"
-    },
-    {
-      "type": "panel",
-      "id": "piechart",
-      "name": "Pie chart",
-      "version": ""
     },
     {
       "type": "datasource",
@@ -72,7 +60,39 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "continuous-GrYlRd"
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "mappings": [],
           "thresholds": {
@@ -92,7 +112,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 22,
+        "h": 11,
         "w": 12,
         "x": 0,
         "y": 0
@@ -100,22 +120,16 @@
       "id": 1,
       "interval": "10s",
       "options": {
-        "displayMode": "lcd",
-        "maxVizHeight": 300,
-        "minVizHeight": 16,
-        "minVizWidth": 8,
-        "namePlacement": "auto",
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
+        "legend": {
+          "calcs": [],
+          "displayMode": "hidden",
+          "placement": "right",
+          "showLegend": false
         },
-        "showUnfilled": true,
-        "sizing": "auto",
-        "valueMode": "color"
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
       },
       "pluginVersion": "10.4.4",
       "targets": [
@@ -132,8 +146,8 @@
           "refId": "A"
         }
       ],
-      "title": "Panel Title",
-      "type": "bargauge"
+      "title": "MEM",
+      "type": "timeseries"
     },
     {
       "datasource": {
@@ -232,7 +246,7 @@
           "refId": "A"
         }
       ],
-      "title": "Panel Title",
+      "title": "MEM",
       "type": "timeseries"
     },
     {
@@ -246,43 +260,68 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
               "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
             }
           },
           "mappings": [],
-          "unit": "decmbytes"
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
         },
         "overrides": []
       },
       "gridPos": {
         "h": 11,
         "w": 12,
-        "x": 12,
+        "x": 0,
         "y": 11
       },
       "id": 3,
       "interval": "10s",
       "options": {
-        "displayLabels": [
-          "percent"
-        ],
         "legend": {
           "calcs": [],
           "displayMode": "hidden",
           "placement": "right",
-          "showLegend": false,
-          "values": []
-        },
-        "pieType": "pie",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
+          "showLegend": false
         },
         "tooltip": {
           "mode": "single",
@@ -296,19 +335,124 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
+          "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "container_memory_usage_bytes{name=~\".+\"} / 1024 / 1024",
+          "expr": "sum by(name) (rate(container_cpu_usage_seconds_total{name=~\".+\"}[$__rate_interval])) * 100",
+          "fullMetaSearch": false,
+          "includeNullMetadata": false,
           "instant": false,
-          "legendFormat": "{{name}}",
+          "legendFormat": "__auto",
           "range": true,
-          "refId": "A"
+          "refId": "A",
+          "useBackend": false
         }
       ],
-      "title": "Panel Title",
-      "type": "piechart"
+      "title": "CPU",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 25,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "percent"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 12,
+        "x": 12,
+        "y": 11
+      },
+      "id": 4,
+      "interval": "10s",
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "hidden",
+          "placement": "right",
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "10.4.4",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "disableTextWrap": false,
+          "editorMode": "code",
+          "expr": "sum by(name) (rate(container_cpu_usage_seconds_total{name=~\".+\"}[$__rate_interval])) * 100",
+          "fullMetaSearch": false,
+          "includeNullMetadata": false,
+          "instant": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A",
+          "useBackend": false
+        }
+      ],
+      "title": "CPU",
+      "type": "timeseries"
     }
   ],
-  "refresh": "10s",
+  "refresh": "5s",
   "schemaVersion": 39,
   "tags": [],
   "templating": {
@@ -320,8 +464,8 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "MEMORY PER CONTAINER",
+  "title": "Kafka",
   "uid": "edpohgj1f3kzke",
-  "version": 3,
+  "version": 2,
   "weekStart": ""
 }

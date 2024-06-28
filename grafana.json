@@ -78,6 +78,206 @@
               "viz": false
             },
             "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 23,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 5,
+      "interval": "5s",
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "disableTextWrap": false,
+          "editorMode": "builder",
+          "expr": "sum by(instance) (spring_kafka_template_seconds_count)",
+          "fullMetaSearch": false,
+          "includeNullMetadata": false,
+          "instant": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A",
+          "useBackend": false
+        }
+      ],
+      "title": "PRODUCED",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 23,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 6,
+      "interval": "5s",
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "disableTextWrap": false,
+          "editorMode": "builder",
+          "expr": "sum by(instance) (kafka_stream_thread_process_rate)",
+          "fullMetaSearch": false,
+          "includeNullMetadata": false,
+          "instant": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A",
+          "useBackend": false
+        }
+      ],
+      "title": "PROCESSED",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
             "lineInterpolation": "smooth",
             "lineWidth": 1,
             "pointSize": 5,
@@ -112,19 +312,19 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 11,
+        "h": 23,
         "w": 12,
         "x": 0,
-        "y": 0
+        "y": 23
       },
       "id": 1,
       "interval": "10s",
       "options": {
         "legend": {
           "calcs": [],
-          "displayMode": "hidden",
-          "placement": "right",
-          "showLegend": false
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "single",
@@ -212,19 +412,19 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 11,
+        "h": 23,
         "w": 12,
         "x": 12,
-        "y": 0
+        "y": 23
       },
       "id": 2,
       "interval": "10s",
       "options": {
         "legend": {
           "calcs": [],
-          "displayMode": "hidden",
-          "placement": "right",
-          "showLegend": false
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "single",
@@ -309,19 +509,19 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 11,
+        "h": 21,
         "w": 12,
         "x": 0,
-        "y": 11
+        "y": 46
       },
       "id": 3,
       "interval": "10s",
       "options": {
         "legend": {
           "calcs": [],
-          "displayMode": "hidden",
-          "placement": "right",
-          "showLegend": false
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "single",
@@ -337,7 +537,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "sum by(name) (rate(container_cpu_usage_seconds_total{name=~\".+\"}[$__rate_interval])) * 100",
+          "expr": "sum by(name) (rate(container_cpu_usage_seconds_total{name=~\".+\", name!=\"betting_platform-kafka-init-1\"}[$__rate_interval])) * 100",
           "fullMetaSearch": false,
           "includeNullMetadata": false,
           "instant": false,
@@ -410,19 +610,19 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 11,
+        "h": 21,
         "w": 12,
         "x": 12,
-        "y": 11
+        "y": 46
       },
       "id": 4,
       "interval": "10s",
       "options": {
         "legend": {
           "calcs": [],
-          "displayMode": "hidden",
-          "placement": "right",
-          "showLegend": false
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "single",
@@ -438,7 +638,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "sum by(name) (rate(container_cpu_usage_seconds_total{name=~\".+\"}[$__rate_interval])) * 100",
+          "expr": "sum by(name) (rate(container_cpu_usage_seconds_total{name=~\".+\", name!=\"betting_platform-kafka-init-1\"}[$__rate_interval])) * 100",
           "fullMetaSearch": false,
           "includeNullMetadata": false,
           "instant": false,
@@ -452,7 +652,7 @@
       "type": "timeseries"
     }
   ],
-  "refresh": "5s",
+  "refresh": "",
   "schemaVersion": 39,
   "tags": [],
   "templating": {
@@ -466,6 +666,6 @@
   "timezone": "browser",
   "title": "Kafka",
   "uid": "edpohgj1f3kzke",
-  "version": 2,
+  "version": 1,
   "weekStart": ""
 }

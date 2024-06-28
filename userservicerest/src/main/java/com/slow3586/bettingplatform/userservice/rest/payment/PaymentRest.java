@@ -12,6 +12,7 @@ import org.springframework.kafka.requestreply.ReplyingKafkaTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
@@ -45,8 +46,8 @@ public class PaymentRest {
     }
 
     @PostMapping
-    public Mono<Void> processPayment(String token) {
-        return this.sendAndReceive(token).then();
+    public Mono<Object> processPayment(@RequestBody String token) {
+        return this.sendAndReceive(token);
     }
 
     protected Mono<Object> sendAndReceive(Object object) {

@@ -32,13 +32,9 @@ public class OrderStreams {
                     final OrderRequest orderRequest = record.value().key;
                     final CustomerDto customerDto = record.value().value;
 
-                    if (customerDto == null) {
-                        throw new IllegalStateException("Unknown customer");
-                    }
-
-                    if (customerDto.getBalance() < 0) {
-                        throw new IllegalStateException("Not enough balance");
-                    }
+                    if (customerDto == null) throw new IllegalStateException("Unknown customer");
+                    if (customerDto.getBalance() < 100) throw new IllegalStateException("Not enough money");
+                    if (customerDto.isHasPremium()) throw new IllegalStateException("Customer already has premium");
 
                     return orderRepository.save(
                             OrderEntity.builder()

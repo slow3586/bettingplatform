@@ -4,8 +4,8 @@ x-logging: &logging
   #driver: gelf
   #options:
   #  gelf-address: "udp://host.docker.internal:12201"
-  #driver: "none"
-  driver: "json-file"
+  driver: "none"
+  #driver: "json-file"
 
 x-healthcheck: &healthcheck
   interval: 5s
@@ -28,7 +28,7 @@ x-kafka-env: &kafka-env
   KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 100
   KAFKA_NUM_PARTITIONS: 12
   KAFKA_DEFAULT_REPLICATION_FACTOR: 3
-  KAFKA_HEAP_OPTS: -Xms64M -Xmx1024M
+  KAFKA_HEAP_OPTS: -Xms64M -Xmx2048M
   KAFKA_SESSION_TIMEOUT_MS: 3000
   KAFKA_HEARTBEAT_INTERVAL_MS: 1000
 
@@ -40,39 +40,70 @@ x-kafka-zookeeper-env: &kafka-zookeeper-env
   ZOOKEEPER_SERVERS: kafka-zookeeper-1:2888:3888;kafka-zookeeper-2:2888:3888
 
 services:
-  user-service:
+  nginx:
+    image: nginx:1.13
+    ports: ["8085:80"]
+    volumes:
+      - './nginx.conf:/etc/nginx/nginx.conf'
+
+  user-service-1:
     build: ./userservice
     logging: *logging
     depends_on:
-      kafdrop:
-        condition: service_healthy
       user-service-db:
         condition: service_healthy
     environment:
       <<: *spring-env
       spring.datasource.url: 'jdbc:postgresql://user-service-db:5432/postgres'
     expose: ["8080"]
-    deploy:
-      mode: replicated
-      replicas: 3
-      endpoint_mode: vip
     healthcheck:
       test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:8080/actuator/health || exit 1"
       <<: *healthcheck
 
-  user-service-rest:
-    build: ./userservicerest
+  user-service-2:
+    build: ./userservice
     logging: *logging
     depends_on:
-      kafdrop:
+      user-service-db:
         condition: service_healthy
     environment:
       <<: *spring-env
-    ports: [ "8082-8090:8080" ]
-    deploy:
-      mode: replicated
-      replicas: 2
-      endpoint_mode: vip
+      spring.datasource.url: 'jdbc:postgresql://user-service-db:5432/postgres'
+    expose: ["8080"]
+    healthcheck:
+      test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:8080/actuator/health || exit 1"
+      <<: *healthcheck
+
+  user-service-3:
+    build: ./userservice
+    logging: *logging
+    depends_on:
+      user-service-db:
+        condition: service_healthy
+    environment:
+      <<: *spring-env
+      spring.datasource.url: 'jdbc:postgresql://user-service-db:5432/postgres'
+    expose: ["8080"]
+    healthcheck:
+      test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:8080/actuator/health || exit 1"
+      <<: *healthcheck
+
+  user-service-rest-1:
+    build: ./userservicerest
+    logging: *logging
+    environment:
+      <<: *spring-env
+    ports: [ "8082:8080" ]
+    healthcheck:
+      test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:8080/actuator/health || exit 1"
+      <<: *healthcheck
+
+  user-service-rest-2:
+    build: ./userservicerest
+    logging: *logging
+    environment:
+      <<: *spring-env
+    expose: [ "8080" ]
     healthcheck:
       test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:8080/actuator/health || exit 1"
       <<: *healthcheck
@@ -122,8 +153,6 @@ services:
     logging: *logging
     depends_on:
       kafka-zookeeper-1:
-        condition: service_healthy
-      kafka-zookeeper-2:
         condition: service_healthy
     expose: ["9091", "9092"]
     environment:
@@ -257,7 +286,7 @@ services:
     restart: always
     volumes:
       - ./prometheus.yaml:/etc/prometheus/prometheus.yml
-    expose: ["9090"]
+    ports: ["9090:9090"]
     healthcheck:
       test: "wget --no-verbose --tries=1 --spider 127.0.0.1:9090 || exit 1"
       <<: *healthcheck
@@ -278,4 +307,18 @@ services:
     ports: ["9411:9411"]
     healthcheck:
       test: "wget --no-verbose --tries=1 --spider 127.0.0.1:9411 || exit 1"
+      <<: *healthcheck
+
+  cadvisor:
+    image: google/cadvisor:v0.33.0
+    logging: *logging
+    restart: always
+    expose: ["8080"]
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    healthcheck:
+      test: "curl --location --output /dev/null --head --silent --fail 127.0.0.1:8080 || exit 1"
       <<: *healthcheck

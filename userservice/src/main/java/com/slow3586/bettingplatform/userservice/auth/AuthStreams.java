@@ -62,8 +62,8 @@ public class AuthStreams {
                     if (authDto == null
                         || !passwordEncoder.matches(
                         loginRequest.getPassword(),
-                        authDto.getPassword())) {
-
+                        authDto.getPassword())
+                    ) {
                         throw new IllegalArgumentException("Incorrect login or password!");
                     }
 

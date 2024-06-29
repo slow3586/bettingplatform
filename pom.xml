@@ -11,10 +11,7 @@
         <module>api</module>
         <module>mainservice</module>
         <module>userservice</module>
-        <module>userservicerest</module>
-        <module>frontendservice</module>
-        <module>websocketservice</module>
-        <module>auditservice</module>
+        <module>mainfrontend</module>
     </modules>
     <groupId>com.slow3586</groupId>
     <artifactId>bettingplatform</artifactId>

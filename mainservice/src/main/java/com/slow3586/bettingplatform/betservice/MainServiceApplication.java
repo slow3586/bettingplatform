@@ -14,6 +14,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.socket.EnableWebSocketSecurity;
 
 @EnableScheduling
 @EnableAsync
@@ -25,6 +26,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 @ComponentScan(value = {"com.slow3586.bettingplatform.*"})
 @EnableWebSecurity
 @EnableMethodSecurity
+@EnableWebSocketSecurity
 @SecurityScheme(
     name = "BearerAuth",
     scheme = "bearer",

@@ -15,6 +15,6 @@ import java.util.UUID;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class OrderDto {
     UUID id;
-    String login;
-    String product;
+    String userLogin;
+    UUID productId;
 }

@@ -1,7 +1,9 @@
 package com.slow3586.bettingplatform.userservice.customer;
 
 import com.slow3586.bettingplatform.api.SecurityUtils;
-import com.slow3586.bettingplatform.api.kafka.KafkaRestUtils;
+import com.slow3586.bettingplatform.api.userservice.dto.CustomerDto;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -10,7 +12,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import reactor.core.publisher.Mono;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,13 +23,12 @@ public class CustomerRest {
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     @Operation(security = @SecurityRequirement(name = "BearerAuth"))
-    public Mono<Object> getByCurrentUser() {
-        return SecurityUtils.getReactivePrincipalId()
-            .flatMap(this::getByLogin);
+    public CustomerDto getByCurrentUser() {
+        return this.getByLogin(SecurityUtils.getPrincipalId());
     }
 
     @GetMapping("/{login}")
-    public Mono<Object> getByLogin(@PathVariable("login") String login) {
+    public CustomerDto getByLogin(@PathVariable("login") String login) {
         return customerService.getByUser(login);
     }
 }

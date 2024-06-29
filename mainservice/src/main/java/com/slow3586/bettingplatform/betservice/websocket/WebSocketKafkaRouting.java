@@ -2,8 +2,8 @@ package com.slow3586.bettingplatform.betservice.websocket;
 
 import com.slow3586.bettingplatform.api.mainservice.dto.BetDto;
 import com.slow3586.bettingplatform.api.mainservice.dto.ChatPostDto;
-import com.slow3586.bettingplatform.api.mainservice.dto.GameDto;
-import com.slow3586.bettingplatform.api.mainservice.dto.PriceDto;
+import com.slow3586.bettingplatform.api.mainservice.dto.GameTypeDto;
+import com.slow3586.bettingplatform.api.mainservice.dto.PriceGameDto;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -18,8 +18,8 @@ public class WebSocketKafkaRouting {
     SimpMessagingTemplate messagingTemplate;
 
     @KafkaListener(topics = "price")
-    public void price(PriceDto dto) {
-        messagingTemplate.convertAndSend("/topic/price", dto);
+    public void price(PriceGameDto dto) {
+        messagingTemplate.convertAndSend("/topic/gamestat", dto);
     }
 
     @KafkaListener(topics = "bet")
@@ -28,8 +28,8 @@ public class WebSocketKafkaRouting {
     }
 
     @KafkaListener(topics = "game")
-    public void game(GameDto dto) {
-        messagingTemplate.convertAndSend("/topic/game", dto);
+    public void game(GameTypeDto dto) {
+        messagingTemplate.convertAndSend("/topic/gametype", dto);
     }
 
     @KafkaListener(topics = "chat_post")

@@ -10,8 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,10 +27,8 @@ public class PaymentService {
     PaymentMapper paymentMapper;
     SecretKey secretKey;
 
-    @KafkaListener(topics = "payment.request", errorHandler = "replyingKafkaTemplateErrorHandler")
-    @SendTo("payment.response")
     @Transactional
-    public UUID processPayment(String token) {
+    public UUID process(String token) {
         if (StringUtils.isBlank(token)) {
             throw new IllegalArgumentException("Invalid token");
         }
@@ -54,7 +50,9 @@ public class PaymentService {
             .source("pay")
             .build();
 
-        CustomerEntity customer = customerRepository.findByLogin(paymentDto.getLogin()).orElseThrow();
+        final CustomerEntity customer = customerRepository
+            .findByName(paymentDto.getLogin())
+            .orElseThrow(() -> new IllegalArgumentException("Unknown customer"));
         customer.setBalance(customer.getBalance() + paymentDto.getValue());
         customerRepository.save(customer);
 

@@ -7,19 +7,18 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import reactor.core.publisher.Mono;
 
-import java.util.Optional;
-import java.util.UUID;
-
 public class SecurityUtils {
     public static String BEARER_PREFIX = "Bearer ";
     public static String AUTH_HEADER_NAME = "Authorization";
 
-    public static UUID getPrincipalId() {
-        return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
-            .map(Authentication::getPrincipal)
-            .filter(p -> p instanceof UUID)
-            .map(p -> ((UUID) p))
-            .orElseThrow(() -> new AccessDeniedException("No authentication"));
+    public static String getPrincipalId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || authentication.getPrincipal() == null) {
+            throw new AccessDeniedException("Not authenticated");
+        }
+
+        return authentication.getPrincipal().toString();
     }
 
     public static Mono<String> getReactivePrincipalId() {

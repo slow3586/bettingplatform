@@ -6,24 +6,20 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.kafka.annotation.EnableKafkaStreams;
-import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.web.reactive.config.EnableWebFlux;
 
 @SpringBootApplication
 @ConfigurationPropertiesScan
 @EnableConfigurationProperties
 @ComponentScan(value = {"com.slow3586.bettingplatform.*"})
-@EnableKafkaStreams
 @EnableTransactionManagement
-@EnableWebFlux
-@EnableWebFluxSecurity
-@EnableReactiveMethodSecurity
+@EnableWebSecurity
+@EnableMethodSecurity
 public class UserServiceApplication {
 
     public static void main(String[] args) {

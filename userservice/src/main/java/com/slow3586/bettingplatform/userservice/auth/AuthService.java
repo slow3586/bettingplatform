@@ -1,7 +1,7 @@
 package com.slow3586.bettingplatform.userservice.auth;
 
-import com.slow3586.bettingplatform.api.userservice.dto.LoginRequest;
-import com.slow3586.bettingplatform.api.userservice.dto.RegisterRequest;
+import com.slow3586.bettingplatform.api.userservice.dto.AuthLoginRequest;
+import com.slow3586.bettingplatform.api.userservice.dto.AuthRegisterRequest;
 import com.slow3586.bettingplatform.userservice.customer.CustomerEntity;
 import com.slow3586.bettingplatform.userservice.customer.CustomerRepository;
 import io.jsonwebtoken.Claims;
@@ -12,8 +12,10 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.SecretKey;
 import java.time.Duration;
@@ -33,16 +35,13 @@ public class AuthService {
     @Value("${auth.token.minutes:600}")
     int tokenMinutes;
 
-    public String login(LoginRequest loginRequest) {
+    public String login(AuthLoginRequest authLoginRequest) {
         final AuthEntity authEntity = authRepository
-            .findByLogin(loginRequest.getLogin());
-
-        if (authEntity == null) {
-            throw new IllegalArgumentException("Invalid login");
-        }
+            .findByName(authLoginRequest.getLogin())
+            .orElseThrow(() -> new IllegalArgumentException("Invalid login"));
 
         if (!passwordEncoder.matches(
-            loginRequest.getPassword(),
+            authLoginRequest.getPassword(),
             authEntity.getPassword())) {
             throw new IllegalArgumentException("Invalid password");
         }
@@ -56,17 +55,19 @@ public class AuthService {
             .compact();
     }
 
-    public String register(RegisterRequest registerRequest) {
-        if (authRepository.existsByLogin(registerRequest.getEmail())) {
+    @Transactional
+    @KafkaListener(topics = "auth.register.request")
+    public void register(AuthRegisterRequest authRegisterRequest) {
+        if (authRepository.existsByName(authRegisterRequest.getEmail())) {
             throw new IllegalArgumentException("Email address already in use");
         }
 
         final String login = authRepository.save(
             AuthEntity.builder()
-                .login(registerRequest.getEmail())
+                .login(authRegisterRequest.getEmail())
                 .role("user")
                 .status("new")
-                .password(passwordEncoder.encode(registerRequest.getPassword()))
+                .password(passwordEncoder.encode(authRegisterRequest.getPassword()))
                 .build()).getLogin();
 
         customerRepository.save(
@@ -77,14 +78,13 @@ public class AuthService {
                 .status("normal")
                 .hasPremium(false)
                 .build());
-
-        return login;
     }
 
     public String checkToken(String token) {
-        final Claims claims;
+        final String subject;
+        final Instant expirationDate;
         try {
-            claims = Jwts.parser()
+            final Claims claims = Jwts.parser()
                 .verifyWith(secretKey)
                 .build()
                 .parseSignedClaims(token)
@@ -93,20 +93,21 @@ public class AuthService {
             if (claims.getSubject() == null || claims.getExpiration() == null) {
                 throw new IllegalArgumentException("Invalid claims");
             }
+
+            subject = claims.getSubject();
+            expirationDate = claims.getExpiration().toInstant();
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid token");
         }
 
-        if (Instant.now().isAfter(claims.getExpiration().toInstant())) {
+        if (Instant.now().isAfter(expirationDate)) {
             throw new IllegalArgumentException("Token expired");
         }
 
-        final AuthEntity authEntity = authRepository.findByLogin(claims.getSubject());
-
-        if (authEntity == null) {
+        if (!authRepository.existsByName(subject)) {
             throw new IllegalArgumentException("Unknown user");
         }
 
-        return authEntity.getLogin();
+        return subject;
     }
 }

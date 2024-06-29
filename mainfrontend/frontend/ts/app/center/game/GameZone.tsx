@@ -10,7 +10,7 @@ export function GameZone() {
     const [chartData, setChartData] = useState([]);
 
     const priceQuery = useQuery(
-        'price',
+        'gamestat',
         async () => await axios.get('/price'),
         {
             enabled: false
@@ -22,7 +22,7 @@ export function GameZone() {
             console.log(message);
         });
 
-    useSubscription("/topic/price",
+    useSubscription("/topic/gamestat",
         (message) => {
             console.log(message);
             setChartData([

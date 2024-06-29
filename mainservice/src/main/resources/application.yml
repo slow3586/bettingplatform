@@ -18,11 +18,6 @@ spring:
 app:
   client:
     user: http://localhost:8081
-  price:
-    request-path: 'https://api.binance.com/api/v3/uiKlines?symbol=BNBUSDT&interval=1s&limit=1'
-    request-date-format: 'yyyy-MM-dd\\THH:mm'
-    response-regex: '\[\[.*?,.*?,.*?,\"(.*?)\",.*'
-    request-instrument: 'BTC'
 management:
   endpoints:
     web:

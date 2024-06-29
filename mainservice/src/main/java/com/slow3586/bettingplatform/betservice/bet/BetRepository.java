@@ -8,6 +8,5 @@ import java.util.UUID;
 
 @Repository
 public interface BetRepository extends CrudRepository<BetEntity, UUID> {
-    List<BetEntity> findAll();
-    List<BetEntity> findAllByUserId(UUID userId);
+    List<BetEntity> findAllByUserLogin(String userLogin);
 }

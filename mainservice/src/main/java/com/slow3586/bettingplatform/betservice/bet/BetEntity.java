@@ -5,7 +5,6 @@ import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.math.BigInteger;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -15,11 +14,10 @@ import java.util.UUID;
 public class BetEntity {
     @Id
     UUID id;
-    UUID gameId;
-    UUID userId;
-    int typeId;
+    String gameName;
+    String userName;
+    int type;
     String status;
-    BigInteger amount;
-    @Builder.Default
-    Instant createdAt = Instant.now();
+    double amount;
+    Instant createdAt;
 }

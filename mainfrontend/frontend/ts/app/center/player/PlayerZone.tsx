@@ -9,7 +9,7 @@ export function PlayerZone() {
     const [selectedChoice, setSelectedChoice] = useState(null);
 
     const gameQuery = useQuery(
-        'game',
+        'gametype',
         async () => await axios.get('/game'),
         {
             enabled: false,

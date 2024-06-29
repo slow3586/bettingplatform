@@ -1,9 +1,6 @@
 package com.slow3586.bettingplatform.betservice.bet;
 
-import com.slow3586.bettingplatform.api.SecurityUtils;
 import com.slow3586.bettingplatform.api.mainservice.dto.BetDto;
-import com.slow3586.bettingplatform.api.mainservice.dto.BetRequest;
-import com.slow3586.bettingplatform.api.mainservice.dto.GameDto;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -22,32 +19,16 @@ public class BetService {
     BetRepository betRepository;
     BetMapper betMapper;
 
-    public List<BetDto> getByCurrentUser() {
-        return betRepository.findAllByUserId(SecurityUtils.getPrincipalId())
+    public List<BetDto> getByUser(String userLogin) {
+        return betRepository.findAllByUserLogin(userLogin)
             .stream()
             .map(betMapper::toDto)
             .toList();
     }
 
-    public List<BetDto> getByUser(UUID userId) {
-        return betRepository.findAllByUserId(userId)
-            .stream()
-            .map(betMapper::toDto)
-            .toList();
-    }
-
-    public UUID make(BetRequest betRequest) {
-        final BetDto dto = betMapper.requestToDto(betRequest);
-        dto.setUserId(SecurityUtils.getPrincipalId());
-        return this.save(dto);
-    }
-
-    protected UUID save(BetDto betDto) {
+    @KafkaListener(topics = "bet.process")
+    protected UUID process(BetDto betDto) {
         final BetEntity save = betRepository.save(betMapper.toEntity(betDto));
         return save.getId();
-    }
-
-    @KafkaListener(topics = "game")
-    protected void gameListener(GameDto gameDto) {
     }
 }
